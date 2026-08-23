@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<index version="1" commit="auto">
+  <category name="Tracking">
+    <repack name="ProjectTimeTracker" type="script">
+      <description>Tracks recording and editing time per Reaper project for billing.</description>
+      <!-- link entries are filled when the repo URL exists:
+      <link default="main">https://github.com/YOURORG/projecttimetracker/raw/main/ProjectTimeTracker.lua</link>
+      -->
+    </repack>
+  </category>
+</index>
