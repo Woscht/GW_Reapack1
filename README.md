@@ -17,7 +17,7 @@ extensions required.
 ## Install via ReaPack (recommended)
 
 1. In REAPER: Extensions → ReaPack → Manage repositories
-2. Click Import and paste: https://github.com/Woscht/GW_Reapack1/raw/main/index.xml
+2. Click Import and paste: [https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/index.xml]
 3. Click OK to add the repository
 4. Still in Manage repositories, type "ProjectTimeTracker" in the filter box
 5. Select the package and click Install
