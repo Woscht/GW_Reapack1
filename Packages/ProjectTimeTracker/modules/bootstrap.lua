@@ -13,14 +13,23 @@ end
 local function reaper_identity(reaper, prefer_guid)
   return PTT.identity.snapshot({
     get_guid = function()
-      -- Stock PROJECT_GUID is empty on some REAPER/Linux builds; fall back to
-      -- a stable ProjExtState id so logs keep identity across Save As / versions.
-      local ok, guid = reaper.GetSetProjectInfo_String(0, "PROJECT_GUID", "", false)
-      if ok and guid and guid ~= "" then return guid end
+      -- Prefer our stable ExtState id. Stock GetSetProjectInfo_String("PROJECT_GUID")
+      -- is empty on some builds and can change across Save As on others — never let
+      -- it override an already assigned tracker id.
       local ret, stored = reaper.GetProjExtState(0, "ProjectTimeTracker", "project_guid")
       if ret == 1 and stored and stored ~= "" then return stored end
+      -- Also accept uppercase key as written into .rpp EXTSTATE blocks.
+      ret, stored = reaper.GetProjExtState(0, "ProjectTimeTracker", "PROJECT_GUID")
+      if ret == 1 and stored and stored ~= "" then
+        reaper.SetProjExtState(0, "ProjectTimeTracker", "project_guid", stored)
+        return stored
+      end
+      local ok, guid = reaper.GetSetProjectInfo_String(0, "PROJECT_GUID", "", false)
+      if ok and guid and guid ~= "" then
+        reaper.SetProjExtState(0, "ProjectTimeTracker", "project_guid", guid)
+        return guid
+      end
       -- Save As can briefly clear ExtState while the same project object remains.
-      -- Re-attach the previously known guid instead of minting a new one.
       if prefer_guid and prefer_guid ~= "" then
         reaper.SetProjExtState(0, "ProjectTimeTracker", "project_guid", prefer_guid)
         return prefer_guid
