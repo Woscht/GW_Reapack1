@@ -1,18 +1,17 @@
---[=[
-  @name ProjectTimeTracker
-  @author The Engineer
-  @version 0.1.0
-  @description Reaper recording/editing time tracker — captures recording & editing time per project, writes JSONL log next to .rpp
-  @changelog
-    + Initial release
-  @provides
-    [main] ProjectTimeTracker.lua
---]=]
+-- @description ProjectTimeTracker
+-- @author The Engineer
+-- @version 0.1.0
+-- @changelog
+--   + Initial release
+-- @provides
+--   [main] .
+--   ProjectTimeTracker_Stop.lua
 
 -- ProjectTimeTracker.lua — Reaper recording/editing time tracker
 
 local SCRIPT_NAME = "ProjectTimeTracker"
 local SCRIPT_VERSION = "0.1.0"
+
 
 -- Early toggle handling: if script is run while supervisor already active,
 -- just flip the ExtState flag and exit (avoids "ReaScript task control" dialog).
