@@ -36,6 +36,20 @@ d = PTT.identity.diff(
 )
 expect(d.same_folder_rename == true, "version rename")
 
+-- Trailing slash / backslash must not look like a directory change
+d = PTT.identity.diff(
+  { guid = "ABC-123", dir = "/p/show", name = "a.rpp", saved = true },
+  { guid = "ABC-123", dir = "/p/show/", name = "a_v2.rpp", saved = true }
+)
+expect(d.same_folder_rename == true, "rename with trailing slash")
+expect(d.path_changed == false, "not path_changed with trailing slash")
+
+d = PTT.identity.diff(
+  { guid = "ABC-123", dir = [[C:\proj]], name = "a.rpp", saved = true },
+  { guid = "ABC-123", dir = [[C:/proj]], name = "a_v2.rpp", saved = true }
+)
+expect(d.same_folder_rename == true, "rename slash style")
+
 d = PTT.identity.diff(
   { guid = "", dir = "", name = "", saved = false },
   { guid = "ABC-123", dir = "/p", name = "a.rpp", saved = true }

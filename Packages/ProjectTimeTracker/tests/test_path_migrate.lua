@@ -48,4 +48,12 @@ expect(bf ~= nil, "bak exists")
 if bf then bf:close() end
 expect(io.open(old_path, "r") == nil, "old gone")
 
+-- Same path must not copy/rename (would truncate/break the live log)
+local same = PTT.path_migrate.carry(result.new_path, base .. "/new", "GUID1", {
+  exists = function() return true end,
+  copy = function() error("copy should not run") end,
+  rename = function() error("rename should not run") end,
+})
+expect(same.skipped == true and same.same_path == true, "same path skipped")
+
 return fails

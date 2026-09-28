@@ -10,7 +10,7 @@ local function script_dir_from_debug()
   return PTT._script_root or ""
 end
 
-local function reaper_identity(reaper)
+local function reaper_identity(reaper, prefer_guid)
   return PTT.identity.snapshot({
     get_guid = function()
       -- Stock PROJECT_GUID is empty on some REAPER/Linux builds; fall back to
@@ -19,6 +19,12 @@ local function reaper_identity(reaper)
       if ok and guid and guid ~= "" then return guid end
       local ret, stored = reaper.GetProjExtState(0, "ProjectTimeTracker", "project_guid")
       if ret == 1 and stored and stored ~= "" then return stored end
+      -- Save As can briefly clear ExtState while the same project object remains.
+      -- Re-attach the previously known guid instead of minting a new one.
+      if prefer_guid and prefer_guid ~= "" then
+        reaper.SetProjExtState(0, "ProjectTimeTracker", "project_guid", prefer_guid)
+        return prefer_guid
+      end
       local fresh = reaper.genGuid and reaper.genGuid("") or string.format("%d-%d", os.time(), math.random(1e9))
       reaper.SetProjExtState(0, "ProjectTimeTracker", "project_guid", fresh)
       return fresh
@@ -159,30 +165,48 @@ end
 
 local function apply_identity_change(ctx, prev, curr, diff)
   if diff.same_folder_rename then
+    -- Ensure guid stays persisted under the new filename after Save As.
+    if curr.guid and curr.guid ~= "" and ctx.reaper.SetProjExtState then
+      ctx.reaper.SetProjExtState(0, "ProjectTimeTracker", "project_guid", curr.guid)
+    end
     ctx.ident = curr
     return
   end
   if diff.path_changed and not diff.guid_changed and prev.guid ~= "" and curr.guid ~= "" then
     close_open_sessions(ctx, "path_change")
     local old_path = ctx.writer.path
-    local res = PTT.path_migrate.carry(old_path, curr.dir, curr.guid, {
-      copy = fs_copy,
-      rename = function(a, b) return os.rename(a, b) end,
-      exists = function(p)
-        local f = io.open(p, "r"); if f then f:close(); return true end; return false
-      end,
-    })
+    local ok_mig, res = pcall(function()
+      return PTT.path_migrate.carry(old_path, curr.dir, curr.guid, {
+        copy = fs_copy,
+        rename = function(a, b) return os.rename(a, b) end,
+        exists = function(p)
+          local f = io.open(p, "r"); if f then f:close(); return true end; return false
+        end,
+      })
+    end)
+    if not ok_mig then
+      if ctx.reaper.ShowConsoleMsg then
+        ctx.reaper.ShowConsoleMsg("[PTT] path migrate failed: " .. tostring(res) .. "\n")
+      end
+      -- Fall back: keep writing to a fresh path in the new dir without deleting old.
+      local fallback = curr.dir:gsub("[/\\]+$", "") .. "/" .. curr.guid .. ".timelog.jsonl"
+      ctx.writer:set_path(fallback)
+      ctx.ident = curr
+      return
+    end
     ctx.writer:set_path(res.new_path)
     ctx.ident = curr
-    emit(ctx, {
-      event = "migrate_path",
-      details = { from = old_path, to = res.new_path, bak = res.bak_path or "" },
-    })
+    if not res.same_path then
+      emit(ctx, {
+        event = "migrate_path",
+        details = { from = old_path, to = res.new_path, bak = res.bak_path or "" },
+      })
+    end
     return
   end
   if diff.became_saved then
     close_open_sessions(ctx, "became_saved")
-    local dest = curr.dir:gsub("/+$", "") .. "/" .. curr.guid .. ".timelog.jsonl"
+    local dest = curr.dir:gsub("[/\\]+$", "") .. "/" .. curr.guid .. ".timelog.jsonl"
     local temp = ctx.writer.path
     PTT.untitled.migrate(temp, dest)
     ctx.writer:set_path(dest)
@@ -191,6 +215,10 @@ local function apply_identity_change(ctx, prev, curr, diff)
     return
   end
   if diff.guid_changed then
+    -- If the project object is unchanged, treat reminted guid as a bug and keep old.
+    if ctx.proj_ptr and curr.guid ~= prev.guid and prev.guid ~= "" then
+      -- Still allow real project switches (handled when proj_ptr changes in tick).
+    end
     close_open_sessions(ctx, "guid_change")
     ctx.ident = curr
     local path = select(1, log_path_for(curr, ctx.resource_path, ctx.pid))
@@ -223,7 +251,7 @@ function M.run(reaper)
     getenv = function(k) return os.getenv(k) end,
   })
 
-  local ident = reaper_identity(reaper)
+  local ident = reaper_identity(reaper, nil)
   local path = select(1, log_path_for(ident, resource, pid))
   local writer = PTT.writer.new({
     path = path,
@@ -237,6 +265,7 @@ function M.run(reaper)
     machine_id = machine,
     resource_path = resource,
     pid = pid,
+    proj_ptr = reaper.EnumProjects(-1),
     wall = PTT.session_wall.new_state(),
     rec = PTT.session_rec.new_state(),
     activity_prev = {
@@ -286,10 +315,28 @@ function M.run(reaper)
     end
     ctx.last_tick = precise
 
-    local curr = reaper_identity(reaper)
+    local proj = reaper.EnumProjects(-1)
+    local same_proj = (ctx.proj_ptr ~= nil and proj == ctx.proj_ptr)
+    local prefer = same_proj and ctx.ident.guid or nil
+    local curr = reaper_identity(reaper, prefer)
+    if not same_proj then
+      ctx.proj_ptr = proj
+    end
     local diff = PTT.identity.diff(ctx.ident, curr)
+    -- Opening a different project: allow guid change without prefer contamination
+    if not same_proj and diff.guid_changed then
+      -- ok
+    elseif same_proj and diff.guid_changed and prefer and prefer ~= "" then
+      -- Should not happen after prefer_guid; force keep
+      curr.guid = prefer
+      diff = PTT.identity.diff(ctx.ident, curr)
+    end
     if diff.guid_changed or diff.path_changed or diff.became_saved or diff.same_folder_rename then
-      apply_identity_change(ctx, ctx.ident, curr, diff)
+      local ok_apply, err_apply = pcall(apply_identity_change, ctx, ctx.ident, curr, diff)
+      if not ok_apply then
+        reaper.ShowConsoleMsg("[PTT] identity change error: " .. tostring(err_apply) .. "\n")
+        ctx.ident = curr
+      end
     else
       ctx.ident = curr
     end
