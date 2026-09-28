@@ -13,14 +13,25 @@ end
 local function reaper_identity(reaper)
   return PTT.identity.snapshot({
     get_guid = function()
+      -- Stock PROJECT_GUID is empty on some REAPER/Linux builds; fall back to
+      -- a stable ProjExtState id so logs keep identity across Save As / versions.
       local ok, guid = reaper.GetSetProjectInfo_String(0, "PROJECT_GUID", "", false)
       if ok and guid and guid ~= "" then return guid end
-      return ""
+      local ret, stored = reaper.GetProjExtState(0, "ProjectTimeTracker", "project_guid")
+      if ret == 1 and stored and stored ~= "" then return stored end
+      local fresh = reaper.genGuid and reaper.genGuid("") or string.format("%d-%d", os.time(), math.random(1e9))
+      reaper.SetProjExtState(0, "ProjectTimeTracker", "project_guid", fresh)
+      return fresh
     end,
     get_project_path = function()
+      -- GetProjectPath() returns the media/record path (.../Media), NOT the .rpp dir.
+      local _, fn = reaper.EnumProjects(-1, "")
+      if fn and fn ~= "" then
+        local dir = fn:match("^(.*)[/\\][^/\\]+$")
+        if dir and dir ~= "" then return dir end
+      end
       local path = reaper.GetProjectPath("") or ""
-      if path == "" then return "" end
-      -- GetProjectPath may return dir without trailing slash
+      path = path:gsub("[/\\]Media[/\\]?$", ""):gsub("[/\\]+$", "")
       return path
     end,
     get_project_name = function()
