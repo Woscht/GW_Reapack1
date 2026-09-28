@@ -9,10 +9,37 @@ Design: `docs/superpowers/specs/2026-09-28-project-time-tracker-clean-core-desig
 
 ## Install
 
-### ReaPack
+### ReaPack (recommended)
 
-Import the repository index and install **Project Time Tracker**. Ensure all
-`modules/*.lua` files are present next to the entry script.
+1. Install [ReaPack](https://reapack.com) if it is not already installed.
+2. In REAPER: **Extensions → ReaPack → Import repositories…**
+3. Paste this index URL and confirm:
+
+   ```
+   https://github.com/Woscht/GW_Reapack1/raw/main/index.xml
+   ```
+
+4. **Extensions → ReaPack → Browse packages…**
+5. Search for **Project Time Tracker** (or `ProjectTimeTracker`).
+6. Right‑click → **Install** (installs the entry script, Stop action, and all `modules/*.lua` files).
+7. **Extensions → ReaPack → Synchronize packages** if the package does not appear yet (CDN can lag briefly after a push).
+
+#### Always-on (startup)
+
+1. **Actions → Show action list**
+2. Find `Script: ProjectTimeTracker.lua` (name may vary slightly by REAPER/ReaPack).
+3. Add it to the **startup actions** / start queue so tracking starts with every REAPER launch.
+4. Optionally bind `ProjectTimeTracker_Stop.lua` to a shortcut for emergency stop.
+
+#### Verify install
+
+After install, the Scripts folder (under the ReaPack package path) should contain:
+
+- `ProjectTimeTracker.lua`
+- `ProjectTimeTracker_Stop.lua`
+- `modules/` (`util.lua`, `activity.lua`, `bootstrap.lua`, …)
+
+If `modules/` is missing, synchronize ReaPack again or reinstall the package.
 
 ### Manual
 
