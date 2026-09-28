@@ -4,7 +4,7 @@
     <reapack name="ProjectTimeTracker" type="script">
       <version name="1.0.0" author="audiocoder" time="2026-08-23T14:00:00Z">
         <source file="ProjectTimeTracker.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker.lua</source>
-        <source file="ProjectTimeTracker_Stop.lua">https://githubusercontent.com</source>
+        <source file="ProjectTimeTracker_Stop.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker_Stop.lua</source>
         <changelog>Initial verified release: recording/editing time tracking, GUID log identity, crash recovery, auto-start, stop action, MD/CSV export.</changelog>
       </version>
     </reapack>
