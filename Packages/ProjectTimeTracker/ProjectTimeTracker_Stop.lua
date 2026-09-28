@@ -1,9 +1,8 @@
---[=[
-  @name ProjectTimeTracker Stop
-  @author Audiocoder
-  @version 0.1.0
-  @description Stops ProjectTimeTracker tracking (no defer loop, no task-control dialog)
---]=]
+-- @description ProjectTimeTracker Stop Action
+-- @version 1.0.0
+-- @author audiocoder
+-- @noindex
+
 
 -- Stop action: flips the ExtState flag to "0". The live tracker instance (running
 -- via defer) picks it up on its next poll and writes script_stop with totals.
