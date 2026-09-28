@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="GW_Reapack1" commit="auto">
+<index version="1" name="GW_Reapack1">
   <category name="Time Tracking">
-    <reapack name="ProjectTimeTracker" type="script">
+    <reapack name="ProjectTimeTracker.lua" type="script" desc="Project Time Tracker">
       <version name="1.0.0" author="audiocoder" time="2026-08-23T14:00:00Z">
-        <source file="ProjectTimeTracker.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker.lua</source>
-        <source file="ProjectTimeTracker_Stop.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker_Stop.lua</source>
-        <changelog>Initial verified release: recording/editing time tracking, GUID log identity, crash recovery, auto-start, stop action, MD/CSV export.</changelog>
+        <source main="main" file="ProjectTimeTracker.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker.lua</source>
+        <source main="main" file="ProjectTimeTracker_Stop.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker_Stop.lua</source>
+        <changelog><![CDATA[Initial verified release: recording/editing time tracking, GUID log identity, crash recovery, auto-start, stop action, MD/CSV export.]]></changelog>
       </version>
     </reapack>
   </category>
