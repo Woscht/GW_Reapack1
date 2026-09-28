@@ -1,34 +1,60 @@
-# ProjectTimeTracker
+# ProjectTimeTracker (v2 clean-core)
 
-Reaper script that tracks **recording time** and **editing time** per project —
-for client billing and voice-actor payroll. Pure stock Lua (ReaScript), no
-extensions required.
+REAPER script that logs **Session-Span** and **Rec-Rolling** per project GUID —
+for gage and client billing. Stock Lua only. JSONL beside the `.rpp` is the
+source of truth.
 
-## Install (once per Mac)
+Design: `docs/superpowers/specs/2026-09-28-project-time-tracker-clean-core-design.md`
+(in the Zeiterfassung workspace).
 
-1. Copy `ProjectTimeTracker.lua` into REAPER's Scripts folder
-   (macOS: `~/Library/Application Support/REAPER/Scripts/`).
-   For auto-start on every launch, put it in `Scripts/Startup/` instead.
-2. In Reaper: **Actions → Show action list → New action → Load ReaScript**,
-   pick the file. Bind it to a toolbar button or shortcut if you like.
+## Install
+
+### ReaPack
+
+Import the repository index and install **Project Time Tracker**. Ensure all
+`modules/*.lua` files are present next to the entry script.
+
+### Manual
+
+Copy `ProjectTimeTracker.lua`, `ProjectTimeTracker_Stop.lua`, and the entire
+`modules/` folder into REAPER Scripts (same relative layout).
+
+For always-on: add `ProjectTimeTracker.lua` to the **startup actions** queue
+(Actions → Show action list → Options / startup).
 
 ## Usage
 
-- **Start action** (`ProjectTimeTracker.lua`): run once → tracking starts.
-- **Stop action** (`ProjectTimeTracker_Stop.lua`): load this too (Actions → Load ReaScript)
-  and run it to stop — avoids REAPER's task-control dialog entirely.
-- Export actions: run the script and choose via the Actions list, or call
-  `export_report("md")` / `export_report("csv")`. Reports are written next to
-  the `.rpp` as `<project>-report.md/.csv`.
+- **Start / always-on:** `ProjectTimeTracker.lua` (defer loop)
+- **Emergency stop:** `ProjectTimeTracker_Stop.lua` (sets ExtState; no dialog)
+- Totals print to the console on stop; full history remains in JSONL
 
-## How it works
+## Metrics
 
-- Polls transport/edit-cursor/undo state every 1.5 s.
-- Recording sessions: first take to last take, gaps ≤ 15 min included.
-- Editing proxy: play/pause/cursor movement/undo changes while not recording.
-- Events append as JSONL to `<GUID>.timelog.jsonl` next to the `.rpp`
-  (log identity is the project GUID, so renaming/moving the `.rpp` keeps history).
+| Metric | Meaning |
+|--------|---------|
+| **Session-Span** | Active work time (Play / Record / interaction) + up to 2 min idle grace; new session after 15 min idle |
+| **Rec-Rolling** | Seconds while transport is recording; rec session ends after 15 min without recording |
 
-## Reports
+**Pause = inactive.** Interaction = cursor move, dirty/undo change, or track/item selection change.
 
-Markdown (human) and CSV (machine) with per-machine totals and recording-session spans.
+Office chooses which metric to bill. `machine` is informational only.
+
+## Logs
+
+- Saved project: `{project_dir}/{guid}.timelog.jsonl`
+- Untitled: temp under REAPER resource path, migrated on first save
+- Save As / version rename in **same folder**: same GUID → same log (times continue)
+- Save into **new folder**: log copied, old renamed to `.bak`
+
+## Limitations (Phase 1)
+
+- No toolbar UI yet
+- No central DB/browser sync yet (`sync_hook` is a no-op)
+- Multi-instance writers not supported
+
+## Tests
+
+```bash
+# requires Lua 5.4 on PATH as lua5.4
+cd Packages/ProjectTimeTracker && lua5.4 tests/run_tests.lua
+```
