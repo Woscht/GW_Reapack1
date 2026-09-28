@@ -1,12 +1,9 @@
 -- @description ProjectTimeTracker Stop Action
--- @version 1.0.0
+-- @version 2.0.0
 -- @author audiocoder
 -- @noindex
 
-
--- Stop action: flips the ExtState flag to "0". The live tracker instance (running
--- via defer) picks it up on its next poll and writes script_stop with totals.
--- Because this script never defers, REAPER never shows the task-control dialog.
+-- Emergency stop: flips ExtState so the always-on tracker exits its defer loop.
 
 local was = reaper.GetExtState("ProjectTimeTracker", "running")
 reaper.SetExtState("ProjectTimeTracker", "running", "0", true)
