@@ -12,21 +12,18 @@ extensions required.
 2. In Reaper: **Actions → Show action list → New action → Load ReaScript**,
    pick the file. Bind it to a toolbar button or shortcut if you like.
 
-## Usage
-
 ## Install via ReaPack (recommended)
 
-1. In REAPER: Extensions → ReaPack → Manage repositories
-2. Click Import and paste: [https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/index.xml]
-3. Click OK to add the repository
-4. Still in Manage repositories, type "ProjectTimeTracker" in the filter box
-5. Select the package and click Install
-6. The actions will be available in the action list; bind to toolbar/shortcut as desired
+1. In REAPER: Extensions → ReaPack → Import repositories
+2. Paste: `https://github.com/Woscht/GW_Reapack1/raw/main/index.xml`
+3. Confirm — repository name should appear as **GW_Reapack1**
+4. Extensions → ReaPack → Browse packages, filter for `ProjectTimeTracker`, Install
+5. Actions are registered automatically; bind to toolbar/shortcut as desired
 
+## Usage
 
 - **Start action** (`ProjectTimeTracker.lua`): run once → tracking starts.
-- **Stop action** (`ProjectTimeTracker_Stop.lua`): load this too (Actions → Load ReaScript)
-  and run it to stop — avoids REAPER's task-control dialog entirely.
+- **Stop action** (`ProjectTimeTracker_Stop.lua`): stops tracking without the task-control dialog.
 - Export actions: run the script and choose via the Actions list, or call
   `export_report("md")` / `export_report("csv")`. Reports are written next to
   the `.rpp` as `<project>-report.md/.csv`.
