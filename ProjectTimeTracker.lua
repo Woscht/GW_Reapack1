@@ -2,7 +2,7 @@
 -- @author audiocoder
 -- @version 2.1.3
 -- @changelog
---   + macOS SMB /Volumes/PRODUKTION paths for central mirror
+--   + Force mirror on open/save/switch/close; mirror_save_debounce_s
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
