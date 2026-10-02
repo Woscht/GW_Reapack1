@@ -134,8 +134,8 @@ local function step()
     guid = tostring(guid):gsub("[{}]", "")
     check("guid_assigned", guid ~= "", guid)
 
-    -- Discover local log (next to .rpp for saved projects)
-    local_log = WORK .. "/proj/" .. guid .. ".timelog.jsonl"
+    -- Discover local log (under project/timetracker for saved projects)
+    local_log = WORK .. "/proj/timetracker/" .. guid .. ".timelog.jsonl"
     if not read_file(local_log) then
       local resource = reaper.GetResourcePath and reaper.GetResourcePath() or ""
       local_log = resource:gsub("/+$", "") .. "/" .. guid .. ".timelog.jsonl"

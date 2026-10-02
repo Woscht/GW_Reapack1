@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.3
+-- @version 2.1.4
 -- @changelog
---   + Force mirror on open/save/switch/close; mirror_save_debounce_s
+--   + Local JSONL under project/timetracker/
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -16,7 +16,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.3" }
+PTT = { _script_root = root, VERSION = "2.1.4" }
 
 local mods = {
   "util",

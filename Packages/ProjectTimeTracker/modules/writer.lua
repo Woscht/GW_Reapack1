@@ -2,6 +2,31 @@ PTT = PTT or {}
 PTT.writer = {}
 local M = PTT.writer
 
+local function ensure_parent_dir(path)
+  local dir = tostring(path or ""):match("^(.+)[/\\][^/\\]+$")
+  if not dir or dir == "" then
+    return true
+  end
+  if type(reaper) == "table" and type(reaper.RecursiveCreateDirectory) == "function" then
+    reaper.RecursiveCreateDirectory(dir, 0)
+  end
+  local probe = dir:gsub("[/\\]+$", "") .. "/.ptt_write_probe"
+  local f = io.open(probe, "wb")
+  if f then
+    f:close()
+    os.remove(probe)
+    return true
+  end
+  os.execute('mkdir -p "' .. dir:gsub('"', '\\"') .. '"')
+  f = io.open(probe, "wb")
+  if f then
+    f:close()
+    os.remove(probe)
+    return true
+  end
+  return false
+end
+
 function M.new(opts)
   opts = opts or {}
   local w = {
@@ -34,6 +59,7 @@ function M.new(opts)
 
   function w:_write_line(line)
     local last_err
+    ensure_parent_dir(self.path)
     for _ = 1, self.max_retries do
       local f, err = self.io_open(self.path, "a+")
       if f then
@@ -52,7 +78,6 @@ function M.new(opts)
     local payload = "{" .. self.json_encode(event_tbl) .. "}\n"
     local ok, err = self:_write_line(payload)
     if ok then
-      -- also try drain any prior buffer
       self:flush_buffer()
       return true
     end

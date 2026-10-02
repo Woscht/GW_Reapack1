@@ -158,8 +158,7 @@ local function log_path_for(ident, resource_path, pid)
   if not ident.saved or ident.guid == "" then
     return PTT.untitled.temp_path(resource_path, pid), true
   end
-  local dir = ident.dir:gsub("/+$", "")
-  return dir .. "/" .. ident.guid .. ".timelog.jsonl", false
+  return PTT.path_migrate.local_log_path(ident.dir, ident.guid), false
 end
 
 local function emit(ctx, event_tbl)
@@ -222,7 +221,7 @@ local function apply_identity_change(ctx, prev, curr, diff)
         ctx.reaper.ShowConsoleMsg("[PTT] path migrate failed: " .. tostring(res) .. "\n")
       end
       -- Fall back: keep writing to a fresh path in the new dir without deleting old.
-      local fallback = curr.dir:gsub("[/\\]+$", "") .. "/" .. curr.guid .. ".timelog.jsonl"
+      local fallback = PTT.path_migrate.local_log_path(curr.dir, curr.guid)
       ctx.writer:set_path(fallback)
       ctx.ident = curr
       return
@@ -239,8 +238,14 @@ local function apply_identity_change(ctx, prev, curr, diff)
   end
   if diff.became_saved then
     close_open_sessions(ctx, "became_saved")
-    local dest = curr.dir:gsub("[/\\]+$", "") .. "/" .. curr.guid .. ".timelog.jsonl"
+    local dest = PTT.path_migrate.local_log_path(curr.dir, curr.guid)
     local temp = ctx.writer.path
+    local parent = dest:match("^(.+)[/\\][^/\\]+$")
+    if parent and PTT.mirror and PTT.mirror.io_fs then
+      PTT.mirror.io_fs().mkdir_p(parent)
+    elseif parent then
+      os.execute('mkdir -p "' .. parent:gsub('"', '\\"') .. '"')
+    end
     PTT.untitled.migrate(temp, dest)
     ctx.writer:set_path(dest)
     ctx.ident = curr
@@ -324,7 +329,7 @@ function M.run(reaper)
     emit(ctx, action)
   end
 
-  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.3" } })
+  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.4" } })
   ctx.was_dirty = false
   ctx.last_save_mirror_ts = 0
   PTT.mirror.maybe_mirror(ctx, { force = true })

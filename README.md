@@ -68,7 +68,10 @@ Office chooses which metric to bill. `machine` is informational only.
 
 ## Logs
 
-- Saved project: `{project_dir}/{guid}.timelog.jsonl`
+- Saved project: `{project_dir}/timetracker/{guid}.timelog.jsonl`
+  (new logs only; older files beside the `.rpp` are left untouched)
+- Untitled: `{resource}/PTT_untitled_{pid}.timelog.jsonl` until first save
+
 - Untitled: temp under REAPER resource path, migrated on first save
 - Save As / version rename in **same folder**: same GUID → same log (times continue)
 - Save into **new folder**: log copied, old renamed to `.bak`

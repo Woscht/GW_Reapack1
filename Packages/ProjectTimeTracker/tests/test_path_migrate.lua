@@ -15,11 +15,18 @@ end
 
 local base = "/tmp/ptt_path_migrate_test"
 os.execute("rm -rf " .. base)
-os.execute("mkdir -p " .. base .. "/old " .. base .. "/new")
+os.execute("mkdir -p " .. base .. "/old " .. base .. "/new/timetracker")
 local old_path = base .. "/old/GUID1.timelog.jsonl"
 local f = assert(io.open(old_path, "w"))
 f:write('{"event":"session_start"}\n')
 f:close()
+
+expect(PTT.path_migrate.LOCAL_SUBDIR == "timetracker", "subdir name")
+expect(
+  PTT.path_migrate.local_log_path(base .. "/new", "GUID1")
+    == base .. "/new/timetracker/GUID1.timelog.jsonl",
+  "local_log_path"
+)
 
 local ops = {}
 local result = PTT.path_migrate.carry(old_path, base .. "/new", "GUID1", {
@@ -29,6 +36,7 @@ local result = PTT.path_migrate.carry(old_path, base .. "/new", "GUID1", {
   copy = function(src, dst)
     ops[#ops + 1] = "copy"
     local i = assert(io.open(src, "r")); local d = i:read("*a"); i:close()
+    os.execute('mkdir -p "' .. dst:match("^(.+)/[^/]+$") .. '"')
     local o = assert(io.open(dst, "w")); o:write(d); o:close()
   end,
   rename = function(src, dst)
@@ -37,7 +45,7 @@ local result = PTT.path_migrate.carry(old_path, base .. "/new", "GUID1", {
   end,
 })
 
-expect(result.new_path == base .. "/new/GUID1.timelog.jsonl", "new path")
+expect(result.new_path == base .. "/new/timetracker/GUID1.timelog.jsonl", "new path")
 expect(result.bak_path == old_path .. ".bak", "bak path")
 expect(ops[1] == "copy" and ops[2] == "rename", "copy then rename")
 local nf = io.open(result.new_path, "r")

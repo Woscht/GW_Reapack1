@@ -151,7 +151,7 @@ local function step()
     PTT.bootstrap.run(reaper)
     guid1 = resolve_guid()
     check("guid1", guid1 ~= "", guid1)
-    local1 = WORK .. "/p1/" .. guid1 .. ".timelog.jsonl"
+    local1 = WORK .. "/p1/timetracker/" .. guid1 .. ".timelog.jsonl"
     central1 = SMB_ROOT .. "/timelogs/" .. guid1 .. ".timelog.jsonl"
 
     t0 = now
@@ -234,7 +234,7 @@ local function step()
     guid2 = resolve_guid()
     check("guid2_assigned", guid2 ~= "" and guid2 ~= guid1,
       "g1=" .. guid1 .. " g2=" .. tostring(guid2))
-    local2 = WORK .. "/p2/" .. guid2 .. ".timelog.jsonl"
+    local2 = WORK .. "/p2/timetracker/" .. guid2 .. ".timelog.jsonl"
     central2 = SMB_ROOT .. "/timelogs/" .. guid2 .. ".timelog.jsonl"
     if not read_file(local2) then
       local resource = reaper.GetResourcePath and reaper.GetResourcePath() or ""
