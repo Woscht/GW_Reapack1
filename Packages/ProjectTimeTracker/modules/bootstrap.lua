@@ -325,6 +325,9 @@ function M.run(reaper)
   end
 
   emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.2" } })
+  ctx.was_dirty = false
+  ctx.last_save_mirror_ts = 0
+  PTT.mirror.maybe_mirror(ctx, { force = true })
 
   local function tick()
     if reaper.GetExtState(EXT_NS, EXT_RUNNING) ~= "1" then
@@ -344,6 +347,14 @@ function M.run(reaper)
         "[PTT] Stopped. Session-Span: %.1fs  Rec-Rolling: %.1fs\n",
         sum.session_span_s, sum.rec_rolling_s))
       return
+    end
+
+    local _, fn = reaper.EnumProjects(-1, "")
+    local untitled = (not fn or fn == "")
+    if untitled and ctx.ident and ctx.ident.saved then
+      close_open_sessions(ctx, "project_close")
+      PTT.mirror.maybe_mirror(ctx, { force = true })
+      ctx.ident = reaper_identity(reaper, nil)
     end
 
     local now = ctx.now()
@@ -371,6 +382,7 @@ function M.run(reaper)
       diff = PTT.identity.diff(ctx.ident, curr)
     end
     if diff.guid_changed or diff.path_changed or diff.became_saved or diff.same_folder_rename then
+      PTT.mirror.maybe_mirror(ctx, { force = true })
       local ok_apply, err_apply = pcall(apply_identity_change, ctx, ctx.ident, curr, diff)
       if not ok_apply then
         reaper.ShowConsoleMsg("[PTT] identity change error: " .. tostring(err_apply) .. "\n")
@@ -382,6 +394,17 @@ function M.run(reaper)
 
     local classified = select(1, sample(reaper, ctx.activity_prev))
     ctx.activity_prev = classified.next_prev
+
+    local curr_dirty = classified.next_prev and classified.next_prev.is_dirty
+    if curr_dirty == nil then
+      curr_dirty = (reaper.IsProjectDirty(0) or 0) ~= 0
+    end
+    local debounce = (ctx.cfg and ctx.cfg.mirror_save_debounce_s) or 30
+    if PTT.mirror.should_force_on_save(ctx.was_dirty, curr_dirty, now, ctx.last_save_mirror_ts, debounce) then
+      PTT.mirror.maybe_mirror(ctx, { force = true })
+      ctx.last_save_mirror_ts = now
+    end
+    ctx.was_dirty = curr_dirty
 
     local wall_out = PTT.session_wall.tick(ctx.wall, {
       now = now,
