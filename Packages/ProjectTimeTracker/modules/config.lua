@@ -2,6 +2,8 @@ PTT = PTT or {}
 PTT.config = PTT.config or {}
 local M = PTT.config
 
+M.CANDIDATE_PATHS = {}
+
 M.DEFAULTS = {
   mirror_interval_s = 300,
   mirror_enabled = true,

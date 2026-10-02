@@ -30,6 +30,8 @@ local mods = {
   "untitled",
   "identity",
   "sync_hook",
+  "config",
+  "mirror",
   "bootstrap",
 }
 
