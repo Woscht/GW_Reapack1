@@ -351,10 +351,11 @@ function M.run(reaper)
 
     local _, fn = reaper.EnumProjects(-1, "")
     local untitled = (not fn or fn == "")
+    -- Best-effort project close: flush old log, but do NOT reset ctx.ident —
+    -- leave identity transition to apply_identity_change so writer.path stays in sync.
     if untitled and ctx.ident and ctx.ident.saved then
       close_open_sessions(ctx, "project_close")
       PTT.mirror.maybe_mirror(ctx, { force = true })
-      ctx.ident = reaper_identity(reaper, nil)
     end
 
     local now = ctx.now()
@@ -382,6 +383,10 @@ function M.run(reaper)
       diff = PTT.identity.diff(ctx.ident, curr)
     end
     if diff.guid_changed or diff.path_changed or diff.became_saved or diff.same_folder_rename then
+      -- Close open sessions first so the pre-switch mirror includes session_end.
+      if diff.guid_changed or diff.path_changed or diff.became_saved then
+        close_open_sessions(ctx, "identity_pre_mirror")
+      end
       PTT.mirror.maybe_mirror(ctx, { force = true })
       local ok_apply, err_apply = pcall(apply_identity_change, ctx, ctx.ident, curr, diff)
       if not ok_apply then
