@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ name or guid }} — PTT Office{% endblock %}
+{% block content %}
+<p><a href="/?from={{ from_ts | urlencode }}&amp;to={{ to_ts | urlencode }}">← All projects</a></p>
+
+<h2 style="margin-top: 0;">{{ name or "—" }}</h2>
+<p><code>{{ guid }}</code></p>
+<p>Range: <code>{{ from_ts }}</code> — <code>{{ to_ts }}</code></p>
+
+<table style="max-width: 28rem; margin-bottom: 1.5rem;">
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th class="num">Seconds</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Session-Span</td>
+      <td class="num">{{ totals.session_span_fmt }}</td>
+    </tr>
+    <tr>
+      <td>Rec-Rolling</td>
+      <td class="num">{{ totals.rec_rolling_fmt }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<details open>
+  <summary>Sessions in range ({{ sessions | length }})</summary>
+  <table>
+    <thead>
+      <tr>
+        <th>Session ID</th>
+        <th>Start</th>
+        <th>End</th>
+        <th class="num">Span (s)</th>
+        <th>Machines</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in sessions %}
+      <tr>
+        <td><code>{{ s.session_id }}</code></td>
+        <td>{{ s.start_ts or "—" }}</td>
+        <td>{{ s.end_ts }}</td>
+        <td class="num">{{ s.span_fmt }}</td>
+        <td>{{ s.machines | join(", ") }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5">No wall-clock sessions closed in this range.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</details>
+{% endblock %}

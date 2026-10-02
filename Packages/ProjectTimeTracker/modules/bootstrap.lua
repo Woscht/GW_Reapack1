@@ -4,6 +4,20 @@ local M = PTT.bootstrap
 
 local EXT_NS = "ProjectTimeTracker"
 local EXT_RUNNING = "running"
+local EXT_CONFIG_PATH = "ptt_config_path"
+
+local function load_ptt_config(reaper)
+  local paths = {}
+  local ext_path = reaper.GetExtState(EXT_NS, EXT_CONFIG_PATH)
+  if ext_path and ext_path ~= "" then
+    paths[#paths + 1] = ext_path
+  end
+  for _, p in ipairs(PTT.config.CANDIDATE_PATHS or {}) do
+    paths[#paths + 1] = p
+  end
+  local cfg = PTT.config.load_from_paths(paths)
+  return cfg
+end
 
 local function script_dir_from_debug()
   -- filled by entry via PTT._script_root
@@ -271,6 +285,10 @@ function M.run(reaper)
     reaper = reaper,
     writer = writer,
     ident = ident,
+    cfg = load_ptt_config(reaper),
+    last_mirror_ts = 0,
+    last_mirror_warn_ts = 0,
+    mirror_warned = false,
     machine_id = machine,
     resource_path = resource,
     pid = pid,
@@ -296,7 +314,7 @@ function M.run(reaper)
     emit(ctx, action)
   end
 
-  emit(ctx, { event = "script_start", details = { version = "2.0.0" } })
+  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.0" } })
 
   local function tick()
     if reaper.GetExtState(EXT_NS, EXT_RUNNING) ~= "1" then
@@ -310,6 +328,8 @@ function M.run(reaper)
           rec_rolling_s = sum.rec_rolling_s,
         },
       })
+      -- Force mirror after script_stop so the central share includes the stop summary
+      PTT.mirror.maybe_mirror(ctx, { force = true })
       reaper.ShowConsoleMsg(string.format(
         "[PTT] Stopped. Session-Span: %.1fs  Rec-Rolling: %.1fs\n",
         sum.session_span_s, sum.rec_rolling_s))
@@ -394,6 +414,8 @@ function M.run(reaper)
         })
       end
     end
+
+    PTT.mirror.maybe_mirror(ctx)
 
     reaper.defer(tick)
   end

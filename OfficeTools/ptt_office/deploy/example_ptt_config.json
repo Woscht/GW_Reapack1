@@ -1,0 +1,5 @@
+{
+  "central_timelogs_dir": "\\\\server\\share\\Zeiterfassung\\timelogs",
+  "mirror_interval_s": 300,
+  "mirror_enabled": true
+}

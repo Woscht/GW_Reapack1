@@ -1,2 +1,3 @@
 *.timelog.jsonl
+!OfficeTools/ptt_office/tests/fixtures/*.timelog.jsonl
 .DS_Store

@@ -73,10 +73,68 @@ Office chooses which metric to bill. `machine` is informational only.
 - Save As / version rename in **same folder**: same GUID → same log (times continue)
 - Save into **new folder**: log copied, old renamed to `.bak`
 
+## Central timelog mirror (optional)
+
+Office can collect copies of per-project JSONL logs on a shared drive. The file
+beside each `.rpp` stays the **source of truth**; the share is a read-only
+mirror for merge/reporting (e.g. OfficeTools).
+
+### Share layout
+
+Place one shared config and a folder for mirrored logs (create `timelogs` on the
+share; clients do not write `ptt_config.json`):
+
+```
+\\server\share\Zeiterfassung\
+  ptt_config.json
+  timelogs\
+    {project-guid}.timelog.jsonl
+    ...
+```
+
+Example config (placeholders): `deploy/example_ptt_config.json` in this repo.
+
+```json
+{
+  "central_timelogs_dir": "\\\\server\\share\\Zeiterfassung\\timelogs",
+  "mirror_interval_s": 300,
+  "mirror_enabled": true
+}
+```
+
+On Windows UNC paths in JSON need doubled backslashes (`\\` → `\\\\` in the file).
+
+### Point each REAPER install at the config
+
+Set ExtState once per machine (REAPER console or a one-off script). Use the
+**full path** to `ptt_config.json` on the share:
+
+```lua
+reaper.SetExtState("ProjectTimeTracker", "ptt_config_path", "\\\\server\\share\\Zeiterfassung\\ptt_config.json", true)
+```
+
+Load order: ExtState `ptt_config_path` (if set), then any paths in
+`PTT.config.CANDIDATE_PATHS`, else built-in defaults (mirror disabled when
+`central_timelogs_dir` is empty).
+
+### Mirror behavior
+
+- While the tracker runs, it copies the **entire** local `{guid}.timelog.jsonl`
+  to `central_timelogs_dir` about every **5 minutes** (`mirror_interval_s`,
+  default 300).
+- On **stop** (`ProjectTimeTracker_Stop` or shutdown path), one **forced** copy
+  runs so the share is as fresh as possible.
+- Copies are **atomic**: write `dest.tmp`, then rename/replace `dest` so
+  readers never see a half-written file.
+- If the share is **unreachable**, tracking and local JSONL writes continue
+  unchanged; mirror failures are skipped and a console warning may appear (rate
+  limited, about every 5 minutes). When the share is back, the next successful
+  mirror overwrites the central file with the full local log.
+
 ## Limitations (Phase 1)
 
 - No toolbar UI yet
-- No central DB/browser sync yet (`sync_hook` is a no-op)
+- No live central DB/browser sync (`sync_hook` is a no-op); optional SMB mirror only
 - Multi-instance writers not supported
 
 ## Tests

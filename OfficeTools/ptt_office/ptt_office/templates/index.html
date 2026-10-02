@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Projects — PTT Office{% endblock %}
+{% block content %}
+<form class="filters" method="get" action="/">
+  <label>
+    Search (name / GUID)
+    <input type="text" name="q" value="{{ q }}" placeholder="e.g. Show">
+  </label>
+  <label>
+    From (ISO UTC)
+    <input type="text" name="from" value="{{ from_ts }}">
+  </label>
+  <label>
+    To (ISO UTC)
+    <input type="text" name="to" value="{{ to_ts }}">
+  </label>
+  <div class="actions">
+    <button type="submit" class="primary">Apply</button>
+    <a class="btn" href="/export.csv?from={{ from_ts | urlencode }}&amp;to={{ to_ts | urlencode }}{% if q %}&amp;q={{ q | urlencode }}{% endif %}">Download CSV</a>
+    <button type="submit" formaction="/refresh" formmethod="post">Refresh import</button>
+  </div>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>Project</th>
+      <th>GUID</th>
+      <th class="num">Session-Span (s)</th>
+      <th class="num">Rec-Rolling (s)</th>
+      <th>Last event</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in projects %}
+    <tr>
+      <td><a href="/projects/{{ p.guid }}?from={{ from_ts | urlencode }}&amp;to={{ to_ts | urlencode }}">{{ p.name or "—" }}</a></td>
+      <td><code>{{ p.guid }}</code></td>
+      <td class="num">{{ p.session_span_fmt }}</td>
+      <td class="num">{{ p.rec_rolling_fmt }}</td>
+      <td>{{ p.last_ts }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5">No projects match the filter.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p style="color: var(--muted); font-size: 0.85rem; margin-top: 1rem;">
+  Session-Span and Rec-Rolling are both shown; office chooses which metric to bill.
+</p>
+{% endblock %}
