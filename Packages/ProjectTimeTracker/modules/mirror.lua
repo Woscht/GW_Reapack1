@@ -48,16 +48,31 @@ function M.io_fs()
         return true
       end
       dir = tostring(dir)
+      local function writable()
+        local probe = dir:gsub("[/\\]+$", "") .. "/.ptt_mkdir_probe"
+        local f = io.open(probe, "wb")
+        if not f then
+          return false
+        end
+        f:close()
+        os.remove(probe)
+        return true
+      end
+      -- Already usable (common: admin pre-created the share folder).
+      if writable() then
+        return true
+      end
       -- Prefer REAPER's cross-platform API (Windows DAWs cannot use mkdir -p).
+      -- Note: on Linux, RecursiveCreateDirectory may return 0 when the path
+      -- already exists — treat writeability as the success criterion.
       if type(reaper) == "table" and type(reaper.RecursiveCreateDirectory) == "function" then
-        local r = reaper.RecursiveCreateDirectory(dir, 0)
-        if type(r) == "number" and r ~= 0 then
+        reaper.RecursiveCreateDirectory(dir, 0)
+        if writable() then
           return true
         end
-        return false, "RecursiveCreateDirectory failed"
       end
       local shell_ok = os.execute('mkdir -p "' .. dir:gsub('"', '\\"') .. '"')
-      if shell_ok == true or shell_ok == 0 then
+      if (shell_ok == true or shell_ok == 0) and writable() then
         return true
       end
       return false, "mkdir failed"
