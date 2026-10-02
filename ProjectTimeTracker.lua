@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.0.0
+-- @version 2.1.0
 -- @changelog
---   + Clean-core rewrite: Session-Span + Rec-Rolling, modular architecture
+--   + Optional central timelog mirror (ptt_config.json, 5 min + force on stop)
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -16,7 +16,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root }
+PTT = { _script_root = root, VERSION = "2.1.0" }
 
 local mods = {
   "util",

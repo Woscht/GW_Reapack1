@@ -47,8 +47,20 @@ function M.io_fs()
       if dir == "" or dir == nil then
         return true
       end
-      os.execute('mkdir -p "' .. tostring(dir):gsub('"', '\\"') .. '"')
-      return true
+      dir = tostring(dir)
+      -- Prefer REAPER's cross-platform API (Windows DAWs cannot use mkdir -p).
+      if type(reaper) == "table" and type(reaper.RecursiveCreateDirectory) == "function" then
+        local r = reaper.RecursiveCreateDirectory(dir, 0)
+        if type(r) == "number" and r ~= 0 then
+          return true
+        end
+        return false, "RecursiveCreateDirectory failed"
+      end
+      local shell_ok = os.execute('mkdir -p "' .. dir:gsub('"', '\\"') .. '"')
+      if shell_ok == true or shell_ok == 0 then
+        return true
+      end
+      return false, "mkdir failed"
     end,
   }
 end

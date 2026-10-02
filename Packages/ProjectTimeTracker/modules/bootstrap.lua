@@ -314,12 +314,11 @@ function M.run(reaper)
     emit(ctx, action)
   end
 
-  emit(ctx, { event = "script_start", details = { version = "2.0.0" } })
+  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.0" } })
 
   local function tick()
     if reaper.GetExtState(EXT_NS, EXT_RUNNING) ~= "1" then
       close_open_sessions(ctx, "stop")
-      PTT.mirror.maybe_mirror(ctx, { force = true })
       -- optional report to console summary
       local sum = PTT.report.sum_log(read_file(ctx.writer.path))
       emit(ctx, {
@@ -329,6 +328,8 @@ function M.run(reaper)
           rec_rolling_s = sum.rec_rolling_s,
         },
       })
+      -- Force mirror after script_stop so the central share includes the stop summary
+      PTT.mirror.maybe_mirror(ctx, { force = true })
       reaper.ShowConsoleMsg(string.format(
         "[PTT] Stopped. Session-Span: %.1fs  Rec-Rolling: %.1fs\n",
         sum.session_span_s, sum.rec_rolling_s))
