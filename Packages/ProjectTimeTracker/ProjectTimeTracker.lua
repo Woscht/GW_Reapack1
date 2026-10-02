@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.2
+-- @version 2.1.4
 -- @changelog
---   + macOS SMB /Volumes/PRODUKTION paths for central mirror
+--   + Local JSONL under project/timetracker/
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -16,7 +16,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.2" }
+PTT = { _script_root = root, VERSION = "2.1.4" }
 
 local mods = {
   "util",

@@ -1,5 +1,5 @@
 -- @description ProjectTimeTracker Stop Action
--- @version 2.1.2
+-- @version 2.1.4
 -- @author audiocoder
 -- @noindex
 

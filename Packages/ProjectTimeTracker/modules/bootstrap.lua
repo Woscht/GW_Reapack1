@@ -158,8 +158,7 @@ local function log_path_for(ident, resource_path, pid)
   if not ident.saved or ident.guid == "" then
     return PTT.untitled.temp_path(resource_path, pid), true
   end
-  local dir = ident.dir:gsub("/+$", "")
-  return dir .. "/" .. ident.guid .. ".timelog.jsonl", false
+  return PTT.path_migrate.local_log_path(ident.dir, ident.guid), false
 end
 
 local function emit(ctx, event_tbl)
@@ -222,7 +221,7 @@ local function apply_identity_change(ctx, prev, curr, diff)
         ctx.reaper.ShowConsoleMsg("[PTT] path migrate failed: " .. tostring(res) .. "\n")
       end
       -- Fall back: keep writing to a fresh path in the new dir without deleting old.
-      local fallback = curr.dir:gsub("[/\\]+$", "") .. "/" .. curr.guid .. ".timelog.jsonl"
+      local fallback = PTT.path_migrate.local_log_path(curr.dir, curr.guid)
       ctx.writer:set_path(fallback)
       ctx.ident = curr
       return
@@ -239,8 +238,14 @@ local function apply_identity_change(ctx, prev, curr, diff)
   end
   if diff.became_saved then
     close_open_sessions(ctx, "became_saved")
-    local dest = curr.dir:gsub("[/\\]+$", "") .. "/" .. curr.guid .. ".timelog.jsonl"
+    local dest = PTT.path_migrate.local_log_path(curr.dir, curr.guid)
     local temp = ctx.writer.path
+    local parent = dest:match("^(.+)[/\\][^/\\]+$")
+    if parent and PTT.mirror and PTT.mirror.io_fs then
+      PTT.mirror.io_fs().mkdir_p(parent)
+    elseif parent then
+      os.execute('mkdir -p "' .. parent:gsub('"', '\\"') .. '"')
+    end
     PTT.untitled.migrate(temp, dest)
     ctx.writer:set_path(dest)
     ctx.ident = curr
@@ -324,7 +329,10 @@ function M.run(reaper)
     emit(ctx, action)
   end
 
-  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.2" } })
+  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.4" } })
+  ctx.was_dirty = false
+  ctx.last_save_mirror_ts = 0
+  PTT.mirror.maybe_mirror(ctx, { force = true })
 
   local function tick()
     if reaper.GetExtState(EXT_NS, EXT_RUNNING) ~= "1" then
@@ -346,6 +354,15 @@ function M.run(reaper)
       return
     end
 
+    local _, fn = reaper.EnumProjects(-1, "")
+    local untitled = (not fn or fn == "")
+    -- Best-effort project close: flush old log, but do NOT reset ctx.ident —
+    -- leave identity transition to apply_identity_change so writer.path stays in sync.
+    if untitled and ctx.ident and ctx.ident.saved then
+      close_open_sessions(ctx, "project_close")
+      PTT.mirror.maybe_mirror(ctx, { force = true })
+    end
+
     local now = ctx.now()
     local precise = (ctx.time_precise and ctx.time_precise()) or now
     local dt = U.POLL_S
@@ -357,6 +374,20 @@ function M.run(reaper)
     local proj = reaper.EnumProjects(-1)
     local same_proj = (ctx.proj_ptr ~= nil and proj == ctx.proj_ptr)
     local prefer = same_proj and ctx.ident.guid or nil
+    -- If the on-disk project directory changed, treat as a real project switch even
+    -- when REAPER keeps the same project pointer (seen on Linux headless opens).
+    if prefer and prefer ~= "" then
+      local _, fn_now = reaper.EnumProjects(-1, "")
+      local new_dir = ""
+      if fn_now and fn_now ~= "" then
+        new_dir = fn_now:match("^(.*)[/\\][^/\\]+$") or ""
+        new_dir = PTT.identity.normalize_dir(new_dir)
+      end
+      local old_dir = PTT.identity.normalize_dir(ctx.ident.dir or "")
+      if old_dir ~= "" and new_dir ~= "" and old_dir ~= new_dir then
+        prefer = nil
+      end
+    end
     local curr = reaper_identity(reaper, prefer)
     if not same_proj then
       ctx.proj_ptr = proj
@@ -371,17 +402,35 @@ function M.run(reaper)
       diff = PTT.identity.diff(ctx.ident, curr)
     end
     if diff.guid_changed or diff.path_changed or diff.became_saved or diff.same_folder_rename then
+      -- Close open sessions first so the pre-switch mirror includes session_end.
+      if diff.guid_changed or diff.path_changed or diff.became_saved then
+        close_open_sessions(ctx, "identity_pre_mirror")
+      end
+      PTT.mirror.maybe_mirror(ctx, { force = true })
       local ok_apply, err_apply = pcall(apply_identity_change, ctx, ctx.ident, curr, diff)
       if not ok_apply then
         reaper.ShowConsoleMsg("[PTT] identity change error: " .. tostring(err_apply) .. "\n")
         ctx.ident = curr
       end
+      -- Soft-status for the new project path (empty/new log still pushed when non-empty).
+      PTT.mirror.maybe_mirror(ctx, { force = true })
     else
       ctx.ident = curr
     end
 
     local classified = select(1, sample(reaper, ctx.activity_prev))
     ctx.activity_prev = classified.next_prev
+
+    local curr_dirty = classified.next_prev and classified.next_prev.is_dirty
+    if curr_dirty == nil then
+      curr_dirty = (reaper.IsProjectDirty(0) or 0) ~= 0
+    end
+    local debounce = (ctx.cfg and ctx.cfg.mirror_save_debounce_s) or 30
+    if PTT.mirror.should_force_on_save(ctx.was_dirty, curr_dirty, now, ctx.last_save_mirror_ts, debounce) then
+      PTT.mirror.maybe_mirror(ctx, { force = true })
+      ctx.last_save_mirror_ts = now
+    end
+    ctx.was_dirty = curr_dirty
 
     local wall_out = PTT.session_wall.tick(ctx.wall, {
       now = now,

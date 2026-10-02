@@ -18,6 +18,9 @@ end
 expect(D.mirror_interval_s == 300, "default interval")
 expect(D.mirror_enabled == true, "default mirror_enabled")
 expect(D.central_timelogs_dir == "", "default central dir")
+expect(D.mirror_save_debounce_s == 30, "default save debounce")
+local cfg_db = C.load_from_text('{"mirror_save_debounce_s":15}')
+expect(cfg_db.mirror_save_debounce_s == 15, "load debounce merge")
 expect(#C.CANDIDATE_PATHS >= 1, "studio candidate paths shipped")
 expect(C.CANDIDATE_PATHS[1]:find("/Volumes/PRODUKTION") ~= nil, "mac candidate first")
 

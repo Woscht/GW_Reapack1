@@ -12,6 +12,15 @@ function M.should_run(last_ts, now, interval_s)
   return (now - (last_ts or 0)) >= interval_s
 end
 
+function M.should_force_on_save(prev_dirty, curr_dirty, now, last_save_mirror_ts, debounce_s)
+  if not prev_dirty or curr_dirty then
+    return false
+  end
+  debounce_s = debounce_s or 30
+  if debounce_s < 0 then debounce_s = 0 end
+  return (now - (last_save_mirror_ts or 0)) >= debounce_s
+end
+
 function M.io_fs()
   return {
     read_all = function(path)
