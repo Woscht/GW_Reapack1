@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.6 — 2026-10-02
+
+- Heartbeat/checkpoint write `span_accum` / `rec_accum` (save + rec-stop + heartbeat) so crash recovery and live mirrors keep progress; billing still only from session/rec end
+- Mirror: never overwrite central with a shorter local log; hydrate local from central when missing/shorter (local→SMB continue)
+
 ## 2.1.5 — 2026-10-02
 
 - Heartbeat while active every **3 minutes** (was 30 s) — fewer JSONL lines; billing metrics unchanged

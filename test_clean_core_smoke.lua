@@ -25,7 +25,7 @@ local function load_modules()
   local mods = {
     "util", "activity", "session_wall", "session_rec", "writer",
     "crash", "report", "path_migrate", "untitled", "identity",
-    "sync_hook", "bootstrap",
+    "sync_hook", "config", "mirror", "bootstrap",
   }
   for _, m in ipairs(mods) do
     local path = PKG .. "/modules/" .. m .. ".lua"

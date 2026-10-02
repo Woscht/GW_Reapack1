@@ -41,4 +41,14 @@ expect(js:find("1%.5") ~= nil or js:find('"rec_accum":1.5') ~= nil, "json number
 local iso = u.now_iso(function() return 1.123 end)
 expect(iso:match("^%d%d%d%d%-%d%d%-%d%dT%d%d:%d%d:%d%d%.%d%d%dZ$") ~= nil, "iso format")
 
+local pf = u.progress_fields(
+  { open = true, session_id = "wall_9", span_accum = 61.5 },
+  { open = true, session_id = "rec_9", rec_accum = 45 }
+)
+expect(pf.span_accum == 61.5, "progress span")
+expect(pf.rec_accum == 45, "progress rec")
+expect(pf.session_id == "wall_9", "progress wall id")
+local pf2 = u.progress_fields({ open = false, span_accum = 10 }, { open = false, rec_accum = 9 })
+expect(pf2.span_accum == nil and pf2.rec_accum == nil, "closed sessions omit progress")
+
 return fails

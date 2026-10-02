@@ -53,7 +53,7 @@ local function load_modules()
   local mods = {
     "util", "activity", "session_wall", "session_rec", "writer",
     "crash", "report", "path_migrate", "untitled", "identity",
-    "sync_hook", "bootstrap",
+    "sync_hook", "config", "mirror", "bootstrap",
   }
   for _, m in ipairs(mods) do
     assert(loadfile(PKG .. "/modules/" .. m .. ".lua"))()
@@ -96,7 +96,7 @@ local function start_tracker()
 end
 
 local function log_path_for_guid(dir, guid)
-  return dir:gsub("/+$", "") .. "/" .. guid .. ".timelog.jsonl"
+  return PTT.path_migrate.local_log_path(dir, guid)
 end
 
 ---------------------------------------------------------------------------

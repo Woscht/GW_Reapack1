@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.5
+-- @version 2.1.6
 -- @changelog
---   + Heartbeat while active every 3 minutes (less JSONL noise)
+--   + Checkpoints + mirror hydrate/never-shrink (local→SMB safe)
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -16,7 +16,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.5" }
+PTT = { _script_root = root, VERSION = "2.1.6" }
 
 local mods = {
   "util",

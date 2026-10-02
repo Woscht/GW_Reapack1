@@ -173,6 +173,22 @@ local function emit(ctx, event_tbl)
   PTT.sync_hook.notify(event_tbl)
 end
 
+local function emit_progress(ctx, event_name, reason)
+  local fields = PTT.util.progress_fields(ctx.wall, ctx.rec)
+  if fields.span_accum == nil and fields.rec_accum == nil then
+    return false
+  end
+  local row = {
+    event = event_name,
+    session_id = fields.session_id or (ctx.wall.session_id or ""),
+    details = { reason = reason },
+  }
+  if fields.span_accum ~= nil then row.span_accum = fields.span_accum end
+  if fields.rec_accum ~= nil then row.rec_accum = fields.rec_accum end
+  emit(ctx, row)
+  return true
+end
+
 local function close_open_sessions(ctx, reason)
   local now = ctx.now()
   if ctx.wall.open then
@@ -323,14 +339,18 @@ function M.run(reaper)
     now = function() return os.time() end,
   }
 
+  -- Pull central history before crash recovery when local is missing/short.
+  PTT.mirror.maybe_hydrate(ctx)
+
   -- crash recovery
-  local recovered = PTT.crash.recover(read_file(path))
+  local recovered = PTT.crash.recover(read_file(ctx.writer.path))
   for _, action in ipairs(recovered.actions) do
     emit(ctx, action)
   end
 
-  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.5" } })
+  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.6" } })
   ctx.was_dirty = false
+  ctx.was_recording = false
   ctx.last_save_mirror_ts = 0
   PTT.mirror.maybe_mirror(ctx, { force = true })
 
@@ -412,7 +432,8 @@ function M.run(reaper)
         reaper.ShowConsoleMsg("[PTT] identity change error: " .. tostring(err_apply) .. "\n")
         ctx.ident = curr
       end
-      -- Soft-status for the new project path (empty/new log still pushed when non-empty).
+      -- New path/GUID: pull central history if local is empty/short, then push.
+      PTT.mirror.maybe_hydrate(ctx)
       PTT.mirror.maybe_mirror(ctx, { force = true })
     else
       ctx.ident = curr
@@ -426,10 +447,8 @@ function M.run(reaper)
       curr_dirty = (reaper.IsProjectDirty(0) or 0) ~= 0
     end
     local debounce = (ctx.cfg and ctx.cfg.mirror_save_debounce_s) or 30
-    if PTT.mirror.should_force_on_save(ctx.was_dirty, curr_dirty, now, ctx.last_save_mirror_ts, debounce) then
-      PTT.mirror.maybe_mirror(ctx, { force = true })
-      ctx.last_save_mirror_ts = now
-    end
+    local force_save_mirror = PTT.mirror.should_force_on_save(
+      ctx.was_dirty, curr_dirty, now, ctx.last_save_mirror_ts, debounce)
     ctx.was_dirty = curr_dirty
 
     local wall_out = PTT.session_wall.tick(ctx.wall, {
@@ -463,14 +482,32 @@ function M.run(reaper)
       })
     end
 
+    -- Persist progress when a take stops (session stays open for punch-ins).
+    if ctx.was_recording and not is_rec and ctx.rec.open then
+      emit_progress(ctx, "checkpoint", "rec_stop")
+    end
+    ctx.was_recording = is_rec
+
+    -- Save: checkpoint then force-mirror so central share has latest accum.
+    if force_save_mirror then
+      emit_progress(ctx, "checkpoint", "save")
+      PTT.mirror.maybe_mirror(ctx, { force = true })
+      ctx.last_save_mirror_ts = now
+    end
+
     if classified.active then
       if now - (ctx.last_heartbeat_ts or 0) >= U.HEARTBEAT_S then
         ctx.last_heartbeat_ts = now
-        emit(ctx, {
+        local hb = {
           event = "heartbeat",
           session_id = ctx.wall.session_id or "",
           details = { reason = classified.reason },
-        })
+        }
+        local fields = U.progress_fields(ctx.wall, ctx.rec)
+        if fields.span_accum ~= nil then hb.span_accum = fields.span_accum end
+        if fields.rec_accum ~= nil then hb.rec_accum = fields.rec_accum end
+        if fields.session_id then hb.session_id = fields.session_id end
+        emit(ctx, hb)
       end
     end
 

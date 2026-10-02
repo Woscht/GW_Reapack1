@@ -34,7 +34,7 @@ local function load_modules()
   PTT = { _script_root = PKG .. "/" }
   for _, m in ipairs({
     "util","activity","session_wall","session_rec","writer","crash","report",
-    "path_migrate","untitled","identity","sync_hook","bootstrap"
+    "path_migrate","untitled","identity","sync_hook","config","mirror","bootstrap"
   }) do
     assert(loadfile(PKG .. "/modules/" .. m .. ".lua"))()
   end
@@ -74,7 +74,7 @@ local function step()
       reaper.Main_SaveProjectEx(0, rpp1, 0)
     end
     guid = stored:gsub("[{}]", "")
-    log_path = ROOT .. "/" .. guid .. ".timelog.jsonl"
+    log_path = PTT.path_migrate.local_log_path(ROOT, guid)
     os.remove(log_path)
     name_before = "Show.rpp"
     dlog("guid=" .. guid .. " log=" .. log_path)
@@ -139,7 +139,7 @@ local function step()
 
     -- Also check if a NEW guid log appeared and received writes
     local new_logs = {}
-    local h2 = io.popen("ls '" .. ROOT .. "'/*.timelog.jsonl 2>/dev/null")
+    local h2 = io.popen("ls '" .. ROOT .. "'/*.timelog.jsonl '" .. ROOT .. "/timetracker'/*.timelog.jsonl 2>/dev/null")
     local listing = h2 and h2:read("*a") or ""
     if h2 then h2:close() end
     dlog("jsonl files:\n" .. listing)

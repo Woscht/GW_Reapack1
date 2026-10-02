@@ -9,6 +9,7 @@ end
 
 local ACTIVITY_EVENTS = {
   heartbeat = true,
+  checkpoint = true,
   session_start = true,
   session_end = true,
   rec_start = true,

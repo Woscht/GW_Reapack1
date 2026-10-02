@@ -8,6 +8,21 @@ M.SESSION_GAP_S = 900
 M.REC_GAP_S = 900
 M.HEARTBEAT_S = 180
 
+--- Fields for heartbeat/checkpoint so crash recovery keeps last known accum.
+function M.progress_fields(wall, rec)
+  wall = wall or {}
+  rec = rec or {}
+  local out = {}
+  if wall.open then
+    out.session_id = wall.session_id or ""
+    out.span_accum = wall.span_accum or 0
+  end
+  if rec.open then
+    out.rec_accum = rec.rec_accum or 0
+  end
+  return out
+end
+
 function M.now_iso(time_precise_fn)
   local t = os.date("!*t")
   local ms = 0

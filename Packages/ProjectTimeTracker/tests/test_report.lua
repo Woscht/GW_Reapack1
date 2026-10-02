@@ -23,6 +23,14 @@ local sum = PTT.report.sum_log(log)
 expect(sum.session_span_s == 180.5, "session sum")
 expect(sum.rec_rolling_s == 50, "rec sum")
 
+local noisy = log .. [[
+{"event":"heartbeat","span_accum":999,"rec_accum":999}
+{"event":"checkpoint","span_accum":888,"rec_accum":888}
+]]
+local sum2 = PTT.report.sum_log(noisy)
+expect(sum2.session_span_s == 180.5, "heartbeat/checkpoint not billed as session")
+expect(sum2.rec_rolling_s == 50, "heartbeat/checkpoint not billed as rec")
+
 local md = PTT.report.to_markdown(sum, { project_name = "Show", project_guid = "ABC" })
 expect(md:find("Session%-Span") ~= nil, "md session")
 expect(md:find("Rec%-Rolling") ~= nil, "md rec")

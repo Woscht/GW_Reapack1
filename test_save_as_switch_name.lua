@@ -30,7 +30,7 @@ local function load_modules()
   PTT = { _script_root = PKG .. "/" }
   for _, m in ipairs({
     "util","activity","session_wall","session_rec","writer","crash","report",
-    "path_migrate","untitled","identity","sync_hook","bootstrap"
+    "path_migrate","untitled","identity","sync_hook","config","mirror","bootstrap"
   }) do assert(loadfile(PKG .. "/modules/" .. m .. ".lua"))() end
   PTT.util.POLL_S = 0.4
   PTT.util.HEARTBEAT_S = 2
@@ -51,9 +51,9 @@ local function step()
     reaper.SetProjExtState(0, "ProjectTimeTracker", "project_guid", g)
     reaper.Main_SaveProjectEx(0, rpp1, 0)
     guid = g:gsub("[{}]", "")
-    log_path = ROOT .. "/" .. guid .. ".timelog.jsonl"
+    log_path = PTT.path_migrate.local_log_path(ROOT, guid)
     os.remove(log_path)
-    dlog("start guid=" .. guid)
+    dlog("start guid=" .. guid .. " log=" .. log_path)
     reaper.SetExtState("ProjectTimeTracker", "running", "0", true)
     PTT.bootstrap.run(reaper)
     phase = 1; t0 = now
@@ -89,12 +89,12 @@ local function step()
     local ret, g2 = reaper.GetProjExtState(0, "ProjectTimeTracker", "project_guid")
     g2 = (g2 or ""):gsub("[{}]", "")
     local log = read_file(log_path)
-    local h = io.popen("ls -la '" .. ROOT .. "'/*.timelog.jsonl '" .. ROOT .. "'/*.bak 2>/dev/null; ls '" .. ROOT .. "'")
+    local h = io.popen("ls -la '" .. ROOT .. "'/*.timelog.jsonl '" .. ROOT .. "/timetracker'/*.timelog.jsonl '" .. ROOT .. "'/*.bak 2>/dev/null; ls -la '" .. ROOT .. "' '" .. ROOT .. "/timetracker' 2>/dev/null")
     dlog(h and h:read("*a") or "")
     if h then h:close() end
 
     -- dump all jsonl sizes
-    local h2 = io.popen("ls '" .. ROOT .. "'/*.timelog.jsonl 2>/dev/null")
+    local h2 = io.popen("ls '" .. ROOT .. "'/*.timelog.jsonl '" .. ROOT .. "/timetracker'/*.timelog.jsonl 2>/dev/null")
     local listing = h2 and h2:read("*a") or ""
     if h2 then h2:close() end
     local total_new_bytes = 0
