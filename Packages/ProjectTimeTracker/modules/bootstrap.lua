@@ -369,6 +369,20 @@ function M.run(reaper)
     local proj = reaper.EnumProjects(-1)
     local same_proj = (ctx.proj_ptr ~= nil and proj == ctx.proj_ptr)
     local prefer = same_proj and ctx.ident.guid or nil
+    -- If the on-disk project directory changed, treat as a real project switch even
+    -- when REAPER keeps the same project pointer (seen on Linux headless opens).
+    if prefer and prefer ~= "" then
+      local _, fn_now = reaper.EnumProjects(-1, "")
+      local new_dir = ""
+      if fn_now and fn_now ~= "" then
+        new_dir = fn_now:match("^(.*)[/\\][^/\\]+$") or ""
+        new_dir = PTT.identity.normalize_dir(new_dir)
+      end
+      local old_dir = PTT.identity.normalize_dir(ctx.ident.dir or "")
+      if old_dir ~= "" and new_dir ~= "" and old_dir ~= new_dir then
+        prefer = nil
+      end
+    end
     local curr = reaper_identity(reaper, prefer)
     if not same_proj then
       ctx.proj_ptr = proj
@@ -393,6 +407,8 @@ function M.run(reaper)
         reaper.ShowConsoleMsg("[PTT] identity change error: " .. tostring(err_apply) .. "\n")
         ctx.ident = curr
       end
+      -- Soft-status for the new project path (empty/new log still pushed when non-empty).
+      PTT.mirror.maybe_mirror(ctx, { force = true })
     else
       ctx.ident = curr
     end
