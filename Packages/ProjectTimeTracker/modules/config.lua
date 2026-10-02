@@ -12,6 +12,7 @@ M.CANDIDATE_PATHS = {
 
 M.DEFAULTS = {
   mirror_interval_s = 300,
+  mirror_save_debounce_s = 30,
   mirror_enabled = true,
   central_timelogs_dir = "",
 }
@@ -19,6 +20,7 @@ M.DEFAULTS = {
 local function copy_defaults()
   return {
     mirror_interval_s = M.DEFAULTS.mirror_interval_s,
+    mirror_save_debounce_s = M.DEFAULTS.mirror_save_debounce_s,
     mirror_enabled = M.DEFAULTS.mirror_enabled,
     central_timelogs_dir = M.DEFAULTS.central_timelogs_dir,
   }
@@ -245,6 +247,9 @@ function M.load_from_text(text)
   end
   if type(obj.mirror_interval_s) == "number" then
     cfg.mirror_interval_s = obj.mirror_interval_s
+  end
+  if type(obj.mirror_save_debounce_s) == "number" then
+    cfg.mirror_save_debounce_s = obj.mirror_save_debounce_s
   end
   if type(obj.mirror_enabled) == "boolean" then
     cfg.mirror_enabled = obj.mirror_enabled
