@@ -1,0 +1,15 @@
+[Unit]
+Description=Project Time Tracker office timelog import (one-shot)
+Documentation=file:///opt/ptt_office/README.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=ptt
+Group=ptt
+WorkingDirectory=/opt/ptt_office
+
+Environment=PTT_TIMELOGS_DIR=/mnt/zeiterfassung/timelogs
+Environment=PTT_SQLITE_PATH=/var/lib/ptt_office/ptt_office.sqlite
+
+ExecStart=/opt/ptt_office/.venv/bin/python -m ptt_office.ingest

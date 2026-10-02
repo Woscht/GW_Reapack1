@@ -171,3 +171,31 @@ def import_dir(conn: sqlite3.Connection, timelogs_dir: PathLike) -> dict[str, in
         stats["files_imported"] += 1
         stats["events_upserted"] += n
     return stats
+
+
+def main() -> int:
+    """CLI entry: import mirrored timelogs using PTT_* env vars."""
+    import os
+
+    from ptt_office import db
+
+    db_path = Path(os.environ.get("PTT_SQLITE_PATH", "ptt_office.sqlite"))
+    logs_dir = Path(os.environ.get("PTT_TIMELOGS_DIR", "timelogs"))
+    conn = db.connect(db_path)
+    db.init_schema(conn)
+    try:
+        stats = import_dir(conn, logs_dir)
+    finally:
+        conn.close()
+    print(
+        "import_dir:",
+        f"scanned={stats['files_scanned']}",
+        f"imported={stats['files_imported']}",
+        f"skipped={stats['files_skipped']}",
+        f"events={stats['events_upserted']}",
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
