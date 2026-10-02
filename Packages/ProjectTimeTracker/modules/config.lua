@@ -2,10 +2,10 @@ PTT = PTT or {}
 PTT.config = PTT.config or {}
 local M = PTT.config
 
--- Studio default: shared config on the PRODUKTION Cube (Windows UNC).
--- ExtState ptt_config_path still overrides when set. Linux mount listed
--- second so headless / office hosts find the same file without ExtState.
+-- Studio Temp test folder on the PRODUKTION Cube. First readable path wins
+-- (Mac SMB mount, Windows UNC, Linux mount). ExtState ptt_config_path overrides.
 M.CANDIDATE_PATHS = {
+  "/Volumes/PRODUKTION/01_Projekte/_Temp/ptt_e2e/ptt_config.json",
   "\\\\192.168.203.33\\PRODUKTION\\01_Projekte\\_Temp\\ptt_e2e\\ptt_config.json",
   "/mnt/cube/01_Projekte/_Temp/ptt_e2e/ptt_config.json",
 }
@@ -203,6 +203,32 @@ function M.parse_json_object(text)
     return nil, "trailing data"
   end
   return obj
+end
+
+--- Map Windows UNC central dir to macOS /Volumes when DAWs are on Mac.
+function M.adapt_central_dir(dir, os_name)
+  dir = tostring(dir or "")
+  if dir == "" then
+    return ""
+  end
+  os_name = tostring(os_name or "")
+  local is_mac = os_name:find("OSX") or os_name:lower():find("mac")
+  if not is_mac then
+    return dir
+  end
+  if dir:sub(1, 1) == "/" then
+    return dir
+  end
+  local slash = dir:gsub("\\", "/"):gsub("^/+", "")
+  local rest = slash:match("^[^/]+/PRODUKTION/(.+)$")
+  if rest then
+    return "/Volumes/PRODUKTION/" .. rest
+  end
+  rest = slash:match("^PRODUKTION/(.+)$")
+  if rest then
+    return "/Volumes/PRODUKTION/" .. rest
+  end
+  return dir
 end
 
 function M.load_from_text(text)

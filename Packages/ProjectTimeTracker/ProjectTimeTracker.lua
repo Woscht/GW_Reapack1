@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.1
+-- @version 2.1.2
 -- @changelog
---   + Default Cube share candidate for ptt_config.json (Temp/ptt_e2e)
+--   + macOS SMB /Volumes/PRODUKTION paths for central mirror
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -16,7 +16,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.1" }
+PTT = { _script_root = root, VERSION = "2.1.2" }
 
 local mods = {
   "util",

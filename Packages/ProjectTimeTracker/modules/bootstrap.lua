@@ -15,7 +15,17 @@ local function load_ptt_config(reaper)
   for _, p in ipairs(PTT.config.CANDIDATE_PATHS or {}) do
     paths[#paths + 1] = p
   end
-  local cfg = PTT.config.load_from_paths(paths)
+  local cfg, src = PTT.config.load_from_paths(paths)
+  local os_name = reaper.GetOS and reaper.GetOS() or ""
+  cfg.central_timelogs_dir = PTT.config.adapt_central_dir(cfg.central_timelogs_dir, os_name)
+  if cfg.mirror_enabled and cfg.central_timelogs_dir == "" then
+    if src then
+      reaper.ShowConsoleMsg("[PTT] ptt_config.json loaded but central_timelogs_dir is empty; mirror disabled\n")
+    else
+      reaper.ShowConsoleMsg(
+        "[PTT] no ptt_config.json found (check /Volumes/PRODUKTION or UNC); mirror disabled\n")
+    end
+  end
   return cfg
 end
 
@@ -314,7 +324,7 @@ function M.run(reaper)
     emit(ctx, action)
   end
 
-  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.1" } })
+  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.2" } })
 
   local function tick()
     if reaper.GetExtState(EXT_NS, EXT_RUNNING) ~= "1" then

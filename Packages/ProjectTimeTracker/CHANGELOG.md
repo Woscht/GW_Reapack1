@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.2 — 2026-10-02
+
+- macOS: config candidate `/Volumes/PRODUKTION/.../ptt_config.json`
+- Map `central_timelogs_dir` UNC → `/Volumes/PRODUKTION/...` on Mac
+- Console message when mirror is enabled but config/central path is missing
+
 ## 2.1.1 — 2026-10-02
 
 - Ship studio default `CANDIDATE_PATHS` for Cube Temp test folder (`ptt_e2e/ptt_config.json`)

@@ -106,12 +106,15 @@ On Windows UNC paths in JSON need doubled backslashes (`\\` → `\\\\` in the fi
 
 ### Point REAPER at the config
 
-**Studio default (Temp test folder):** `2.1.1+` already looks for
+**Studio default (Temp test folder):** `2.1.2+` looks for the first readable config:
 
-`\\192.168.203.33\PRODUKTION\01_Projekte\_Temp\ptt_e2e\ptt_config.json`
+- **macOS (DAWs):** `/Volumes/PRODUKTION/01_Projekte/_Temp/ptt_e2e/ptt_config.json`  
+  Connect in Finder: `smb://192.168.203.33/PRODUKTION` — the volume name must be **PRODUKTION**.
+- **Windows:** `\\192.168.203.33\PRODUKTION\01_Projekte\_Temp\ptt_e2e\ptt_config.json`
+- **Linux office:** `/mnt/cube/01_Projekte/_Temp/ptt_e2e/ptt_config.json`
 
-(and the Linux mount `/mnt/cube/01_Projekte/_Temp/ptt_e2e/ptt_config.json`).
-No ExtState needed if that file exists on the Cube.
+On Mac, `central_timelogs_dir` in the JSON may stay as UNC; the tracker maps it to `/Volumes/PRODUKTION/...` automatically.
+No ExtState needed if the share is mounted and `ptt_config.json` exists.
 
 Optional override (other shares / machines):
 

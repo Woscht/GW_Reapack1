@@ -131,7 +131,7 @@ function M.dest_path(central_dir, guid)
 end
 
 local function parent_dir(path)
-  return path:match("^(.+)/[^/]+$")
+  return path:match("^(.+)[/\\][^/\\]+$")
 end
 
 local function replace_file(tmp, dest, fs)
