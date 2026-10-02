@@ -329,7 +329,7 @@ function M.run(reaper)
     emit(ctx, action)
   end
 
-  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.4" } })
+  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.5" } })
   ctx.was_dirty = false
   ctx.last_save_mirror_ts = 0
   PTT.mirror.maybe_mirror(ctx, { force = true })

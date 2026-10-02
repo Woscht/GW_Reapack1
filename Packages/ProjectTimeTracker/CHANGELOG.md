@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.5 — 2026-10-02
+
+- Heartbeat while active every **3 minutes** (was 30 s) — fewer JSONL lines; billing metrics unchanged
+
 ## 2.1.4 — 2026-10-02
 
 - Local JSONL for saved projects: `{project_dir}/timetracker/{guid}.timelog.jsonl` (no auto-migrate of older beside-.rpp logs)

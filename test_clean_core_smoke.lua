@@ -45,7 +45,7 @@ local function main()
     fail("PTT namespaces missing after load")
     return
   end
-  if PTT.util.IDLE_GRACE_S ~= 120 or PTT.util.HEARTBEAT_S ~= 30 then
+  if PTT.util.IDLE_GRACE_S ~= 120 or PTT.util.HEARTBEAT_S ~= 180 then
     fail("constants mismatch")
     return
   end

@@ -6,7 +6,7 @@ M.POLL_S = 1.5
 M.IDLE_GRACE_S = 120
 M.SESSION_GAP_S = 900
 M.REC_GAP_S = 900
-M.HEARTBEAT_S = 30
+M.HEARTBEAT_S = 180
 
 function M.now_iso(time_precise_fn)
   local t = os.date("!*t")

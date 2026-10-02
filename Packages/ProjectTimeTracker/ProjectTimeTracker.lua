@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.4
+-- @version 2.1.5
 -- @changelog
---   + Local JSONL under project/timetracker/
+--   + Heartbeat while active every 3 minutes (less JSONL noise)
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -16,7 +16,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.4" }
+PTT = { _script_root = root, VERSION = "2.1.5" }
 
 local mods = {
   "util",

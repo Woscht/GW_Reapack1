@@ -19,7 +19,7 @@ end
 
 expect(u.IDLE_GRACE_S == 120, "idle grace")
 expect(u.SESSION_GAP_S == 900, "session gap")
-expect(u.HEARTBEAT_S == 30, "heartbeat")
+expect(u.HEARTBEAT_S == 180, "heartbeat")
 expect(u.POLL_S == 1.5, "poll")
 expect(u.REC_GAP_S == 900, "rec gap")
 
