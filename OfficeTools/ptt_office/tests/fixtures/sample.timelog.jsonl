@@ -1,0 +1,8 @@
+{"ts":"2026-01-15T09:00:00.000Z","event":"session_start","session_id":"wall_1","project_guid":"ABC-GUID","project_name":"Show A","machine":"studio1"}
+{"ts":"2026-01-15T10:00:00.000Z","event":"session_end","session_id":"wall_1","span_accum":120.5,"project_guid":"ABC-GUID","project_name":"Show A","machine":"studio1"}
+{"ts":"2026-01-15T10:30:00.000Z","event":"session_start","session_id":"wall_2","project_guid":"ABC-GUID","project_name":"Show A","machine":"studio2"}
+{"ts":"2026-01-15T11:00:00.000Z","event":"session_end","session_id":"wall_2","span_accum":60,"project_guid":"ABC-GUID","project_name":"Show A","machine":"studio2"}
+{"ts":"2026-01-15T11:30:00.000Z","event":"rec_session_end","session_id":"rec_1","rec_accum":40,"project_guid":"ABC-GUID","project_name":"Show A","machine":"studio1"}
+{"ts":"2026-01-15T12:00:00.000Z","event":"crash_close","close_event":"rec_session_end","session_id":"rec_2","rec_accum":10,"project_guid":"ABC-GUID","project_name":"Show A","machine":"studio1"}
+{"ts":"2026-01-15T12:30:00.000Z","event":"crash_close","close_event":"session_end","session_id":"wall_3","span_accum":5.5,"project_guid":"ABC-GUID","project_name":"Show A","machine":"studio1"}
+{"ts":"2026-02-01T08:00:00.000Z","event":"session_end","session_id":"wall_4","span_accum":999,"project_guid":"ABC-GUID","project_name":"Show A","machine":"studio1"}
