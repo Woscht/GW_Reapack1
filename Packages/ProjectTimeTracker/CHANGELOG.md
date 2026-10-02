@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.1 — 2026-10-02
+
+- Ship studio default `CANDIDATE_PATHS` for Cube Temp test folder (`ptt_e2e/ptt_config.json`)
+- ExtState `ptt_config_path` remains an optional override
+
 ## 2.1.0 — 2026-10-02
 
 - Optional central timelog mirror to a shared folder (`central_timelogs_dir`)

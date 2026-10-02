@@ -2,7 +2,13 @@ PTT = PTT or {}
 PTT.config = PTT.config or {}
 local M = PTT.config
 
-M.CANDIDATE_PATHS = {}
+-- Studio default: shared config on the PRODUKTION Cube (Windows UNC).
+-- ExtState ptt_config_path still overrides when set. Linux mount listed
+-- second so headless / office hosts find the same file without ExtState.
+M.CANDIDATE_PATHS = {
+  "\\\\192.168.203.33\\PRODUKTION\\01_Projekte\\_Temp\\ptt_e2e\\ptt_config.json",
+  "/mnt/cube/01_Projekte/_Temp/ptt_e2e/ptt_config.json",
+}
 
 M.DEFAULTS = {
   mirror_interval_s = 300,

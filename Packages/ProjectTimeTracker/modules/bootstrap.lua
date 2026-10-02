@@ -314,7 +314,7 @@ function M.run(reaper)
     emit(ctx, action)
   end
 
-  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.0" } })
+  emit(ctx, { event = "script_start", details = { version = PTT.VERSION or "2.1.1" } })
 
   local function tick()
     if reaper.GetExtState(EXT_NS, EXT_RUNNING) ~= "1" then

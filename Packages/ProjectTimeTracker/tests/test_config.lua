@@ -18,6 +18,11 @@ end
 expect(D.mirror_interval_s == 300, "default interval")
 expect(D.mirror_enabled == true, "default mirror_enabled")
 expect(D.central_timelogs_dir == "", "default central dir")
+expect(#C.CANDIDATE_PATHS >= 1, "studio candidate paths shipped")
+expect(
+  C.CANDIDATE_PATHS[1] == "\\\\192.168.203.33\\PRODUKTION\\01_Projekte\\_Temp\\ptt_e2e\\ptt_config.json",
+  "primary UNC candidate"
+)
 
 local empty_cfg = C.load_from_text("")
 expect(empty_cfg.mirror_interval_s == 300, "empty text interval default")

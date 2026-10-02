@@ -104,18 +104,23 @@ Example config (placeholders): `deploy/example_ptt_config.json` in this repo.
 
 On Windows UNC paths in JSON need doubled backslashes (`\\` → `\\\\` in the file).
 
-### Point each REAPER install at the config
+### Point REAPER at the config
 
-Set ExtState once per machine (REAPER console or a one-off script). Use the
-**full path** to `ptt_config.json` on the share:
+**Studio default (Temp test folder):** `2.1.1+` already looks for
+
+`\\192.168.203.33\PRODUKTION\01_Projekte\_Temp\ptt_e2e\ptt_config.json`
+
+(and the Linux mount `/mnt/cube/01_Projekte/_Temp/ptt_e2e/ptt_config.json`).
+No ExtState needed if that file exists on the Cube.
+
+Optional override (other shares / machines):
 
 ```lua
 reaper.SetExtState("ProjectTimeTracker", "ptt_config_path", "\\\\server\\share\\Zeiterfassung\\ptt_config.json", true)
 ```
 
-Load order: ExtState `ptt_config_path` (if set), then any paths in
-`PTT.config.CANDIDATE_PATHS`, else built-in defaults (mirror disabled when
-`central_timelogs_dir` is empty).
+Load order: ExtState `ptt_config_path` (if set), then `PTT.config.CANDIDATE_PATHS`,
+else built-in defaults (mirror disabled when `central_timelogs_dir` is empty).
 
 ### Mirror behavior
 

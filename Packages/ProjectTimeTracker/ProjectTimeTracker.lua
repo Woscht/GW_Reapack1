@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.0
+-- @version 2.1.1
 -- @changelog
---   + Optional central timelog mirror (ptt_config.json, 5 min + force on stop)
+--   + Default Cube share candidate for ptt_config.json (Temp/ptt_e2e)
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -16,7 +16,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.0" }
+PTT = { _script_root = root, VERSION = "2.1.1" }
 
 local mods = {
   "util",
