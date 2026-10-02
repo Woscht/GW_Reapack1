@@ -1,6 +1,6 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.2
+-- @version 2.1.3
 -- @changelog
 --   + macOS SMB /Volumes/PRODUKTION paths for central mirror
 -- @provides
@@ -16,7 +16,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.2" }
+PTT = { _script_root = root, VERSION = "2.1.3" }
 
 local mods = {
   "util",

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.3 — 2026-10-02
+
+- Force mirror on open, debounced manual save (~30s), project switch, tracker stop, best-effort project close
+- Config: mirror_save_debounce_s (default 30); 5 min interval remains safety net
+
 ## 2.1.2 — 2026-10-02
 
 - macOS: config candidate `/Volumes/PRODUKTION/.../ptt_config.json`

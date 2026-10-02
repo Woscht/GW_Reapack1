@@ -98,6 +98,7 @@ Example config (placeholders): `deploy/example_ptt_config.json` in this repo.
 {
   "central_timelogs_dir": "\\\\server\\share\\Zeiterfassung\\timelogs",
   "mirror_interval_s": 300,
+  "mirror_save_debounce_s": 30,
   "mirror_enabled": true
 }
 ```
@@ -127,11 +128,17 @@ else built-in defaults (mirror disabled when `central_timelogs_dir` is empty).
 
 ### Mirror behavior
 
-- While the tracker runs, it copies the **entire** local `{guid}.timelog.jsonl`
-  to `central_timelogs_dir` about every **5 minutes** (`mirror_interval_s`,
-  default 300).
-- On **stop** (`ProjectTimeTracker_Stop` or shutdown path), one **forced** copy
-  runs so the share is as fresh as possible.
+- **Forced** copy (full local log → share) when:
+  - the tracker **starts** (script open);
+  - you **save** the project (dirty → clean), debounced by `mirror_save_debounce_s`
+    (default **30** seconds between forced save mirrors);
+  - the **project identity** changes (switch project, save-as, path/GUID migrate);
+  - the tracker **stops** (`ProjectTimeTracker_Stop` or shutdown path);
+  - **best effort** when a saved project is closed and REAPER shows an empty/untitled
+    project (not on initial untitled startup).
+- While the tracker runs, an **interval** copy still runs about every **5 minutes**
+  (`mirror_interval_s`, default 300) as a safety net.
+- Transport **Play/Stop** does **not** trigger a mirror.
 - Copies are **atomic**: write `dest.tmp`, then rename/replace `dest` so
   readers never see a half-written file.
 - If the share is **unreachable**, tracking and local JSONL writes continue
