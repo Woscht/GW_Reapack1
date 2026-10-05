@@ -1,12 +1,13 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.7
+-- @version 2.1.8
 -- @changelog
---   + Notes UI auto-open (missing status) + mirror *.notes.jsonl sidecar
+--   + Toggle Nicht ins Büro (opt out of mirror + notes reminder)
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
 --   ProjectTimeTracker_OpenNotes.lua
+--   ProjectTimeTracker_OfficeOptOut.lua
 --   [nomain] modules/*.lua
 
 -- ProjectTimeTracker.lua — entry: load modules and start bootstrap
@@ -17,7 +18,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.7" }
+PTT = { _script_root = root, VERSION = "2.1.8" }
 
 local mods = {
   "util",
@@ -32,6 +33,7 @@ local mods = {
   "identity",
   "sync_hook",
   "config",
+  "office_opt",
   "mirror",
   "notes_ui",
   "bootstrap",

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.8 — 2026-10-05
+
+- Action **Toggle Nicht ins Büro**: sets project ExtState `office_opt_out`
+- While opted out: no central mirror, no hydrate, no notes auto-open; local JSONL continues
+- Toggle again to re-enable office sync for that project
+
 ## 2.1.7 — 2026-10-05
 
 - Mirror local `{guid}.notes.jsonl` beside timelogs (always overwrite when local notes exist; never delete central if local missing)

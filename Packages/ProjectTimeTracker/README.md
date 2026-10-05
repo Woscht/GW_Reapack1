@@ -108,6 +108,19 @@ Example config (placeholders): `deploy/example_ptt_config.json` in this repo.
 }
 ```
 
+### Nicht ins Büro (opt-out)
+
+Action **Project Time Tracker: Toggle Nicht ins Büro** marks the **current saved project**
+(ExtState `office_opt_out=1`). While set:
+
+- no mirror to the central timelogs folder  
+- no hydrate from central  
+- no notes auto-open  
+
+Local logging under `timetracker/` continues. Toggle again to clear the flag.
+Untitled projects are never mirrored anyway. If a project was already mirrored before
+opt-out, hide it in DispoDisco with **Löschen** if needed.
+
 ### Block notes (DispoDisco)
 
 - Local sidecar: `{project}/timetracker/{guid}.notes.jsonl` (mirrored to central as `{guid}.notes.jsonl` when present).

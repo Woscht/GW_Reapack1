@@ -137,6 +137,9 @@ function M.maybe_mirror(ctx, opts)
   if not cfg or not cfg.mirror_enabled then
     return
   end
+  if PTT.office_opt and PTT.office_opt.is_opted_out_ctx(ctx) then
+    return
+  end
   local central = cfg.central_timelogs_dir
   if type(central) ~= "string" or central == "" then
     return
@@ -237,6 +240,9 @@ function M.maybe_hydrate(ctx, opts)
   local cfg = ctx and ctx.cfg
   if not cfg or not cfg.mirror_enabled then
     return false, "disabled"
+  end
+  if PTT.office_opt and PTT.office_opt.is_opted_out_ctx(ctx) then
+    return false, "office_opt_out"
   end
   local central = cfg.central_timelogs_dir
   if type(central) ~= "string" or central == "" then

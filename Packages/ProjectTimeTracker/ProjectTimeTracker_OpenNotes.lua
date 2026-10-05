@@ -1,5 +1,5 @@
 -- @description Project Time Tracker: Open notes UI
--- @version 2.1.7
+-- @version 2.1.8
 -- @author audiocoder
 -- @provides [main] .
 
@@ -11,7 +11,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.7" }
+PTT = { _script_root = root, VERSION = "2.1.8" }
 
 local mods = {
   "util",

@@ -7,6 +7,7 @@ local function load_mod(name)
 end
 
 _G.PTT = {}
+load_mod("office_opt")
 load_mod("mirror")
 local M = PTT.mirror
 

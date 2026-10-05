@@ -110,6 +110,9 @@ function M.maybe_auto_open(ctx, opts)
   if cfg.notes_auto_open == false then
     return false, "disabled"
   end
+  if PTT.office_opt and PTT.office_opt.is_opted_out_ctx(ctx) then
+    return false, "office_opt_out"
+  end
   local base = cfg.notes_ui_base_url or ""
   if base == "" then
     return false, "no_base"
