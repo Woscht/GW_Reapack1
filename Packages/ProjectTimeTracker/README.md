@@ -142,7 +142,9 @@ On Windows UNC paths in JSON need doubled backslashes (`\\` → `\\\\` in the fi
 - **Windows:** `\\192.168.203.33\PRODUKTION\01_Projekte\_Temp\ptt_e2e\ptt_config.json`
 - **Linux office:** `/mnt/cube/01_Projekte/_Temp/ptt_e2e/ptt_config.json`
 
-On Mac, `central_timelogs_dir` in the JSON may stay as UNC; the tracker maps it to `/Volumes/PRODUKTION/...` automatically.
+On Mac, `central_timelogs_dir` may be UNC **or** the Linux mount `/mnt/cube/...`;
+the tracker maps both to `/Volumes/PRODUKTION/...`. On Linux, `/Volumes/PRODUKTION/...`
+is mapped to `/mnt/cube/...`.
 No ExtState needed if the share is mounted and `ptt_config.json` exists.
 
 Optional override (other shares / machines):

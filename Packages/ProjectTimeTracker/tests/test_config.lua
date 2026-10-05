@@ -40,6 +40,21 @@ expect(
 )
 expect(C.adapt_central_dir("/already/unix", "OSX64") == "/already/unix", "unix unchanged")
 expect(C.adapt_central_dir(unc, "Win64") == unc, "windows unchanged")
+expect(
+  C.adapt_central_dir("/mnt/cube/01_Projekte/_Temp/ptt_e2e/timelogs", "OSX64")
+    == "/Volumes/PRODUKTION/01_Projekte/_Temp/ptt_e2e/timelogs",
+  "adapt Linux cube mount to /Volumes on Mac"
+)
+expect(
+  C.adapt_central_dir("/Volumes/PRODUKTION/01_Projekte/_Temp/ptt_e2e/timelogs", "Other")
+    == "/mnt/cube/01_Projekte/_Temp/ptt_e2e/timelogs",
+  "adapt /Volumes to /mnt/cube on Linux"
+)
+expect(
+  C.adapt_central_dir("/mnt/cube/01_Projekte/_Temp/ptt_e2e/timelogs", "Other")
+    == "/mnt/cube/01_Projekte/_Temp/ptt_e2e/timelogs",
+  "Linux cube path unchanged"
+)
 
 local empty_cfg = C.load_from_text("")
 expect(empty_cfg.mirror_interval_s == 300, "empty text interval default")

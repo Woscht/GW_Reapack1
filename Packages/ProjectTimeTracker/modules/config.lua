@@ -211,7 +211,9 @@ function M.parse_json_object(text)
   return obj
 end
 
---- Map Windows UNC central dir to macOS /Volumes when DAWs are on Mac.
+--- Normalize central_timelogs_dir for the host OS.
+--- Shared studio config often stores the Linux mount (`/mnt/cube/...`); Mac DAWs
+--- need `/Volumes/PRODUKTION/...`. UNC is mapped to /Volumes on Mac as before.
 function M.adapt_central_dir(dir, os_name)
   dir = tostring(dir or "")
   if dir == "" then
@@ -219,21 +221,36 @@ function M.adapt_central_dir(dir, os_name)
   end
   os_name = tostring(os_name or "")
   local is_mac = os_name:find("OSX") or os_name:lower():find("mac")
-  if not is_mac then
+  local is_win = os_name:find("Win") ~= nil
+
+  if is_mac then
+    local cube_rest = dir:match("^/mnt/cube/(.+)$")
+    if cube_rest then
+      return "/Volumes/PRODUKTION/" .. cube_rest
+    end
+    if dir:sub(1, 1) == "/" then
+      return dir
+    end
+    local slash = dir:gsub("\\", "/"):gsub("^/+", "")
+    local rest = slash:match("^[^/]+/PRODUKTION/(.+)$")
+    if rest then
+      return "/Volumes/PRODUKTION/" .. rest
+    end
+    rest = slash:match("^PRODUKTION/(.+)$")
+    if rest then
+      return "/Volumes/PRODUKTION/" .. rest
+    end
     return dir
   end
-  if dir:sub(1, 1) == "/" then
-    return dir
+
+  -- Linux office/host: accept Mac volume paths from a shared config.
+  if not is_win then
+    local vol_rest = dir:match("^/Volumes/PRODUKTION/(.+)$")
+    if vol_rest then
+      return "/mnt/cube/" .. vol_rest
+    end
   end
-  local slash = dir:gsub("\\", "/"):gsub("^/+", "")
-  local rest = slash:match("^[^/]+/PRODUKTION/(.+)$")
-  if rest then
-    return "/Volumes/PRODUKTION/" .. rest
-  end
-  rest = slash:match("^PRODUKTION/(.+)$")
-  if rest then
-    return "/Volumes/PRODUKTION/" .. rest
-  end
+
   return dir
 end
 

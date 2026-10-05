@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.9
+-- @version 2.1.10
 -- @changelog
---   + Skip mirror/hydrate for unsaved (untitled) projects
+--   + Map /mnt/cube central path to /Volumes on Mac (fixes mkdir failed)
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -18,7 +18,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.9" }
+PTT = { _script_root = root, VERSION = "2.1.10" }
 
 local mods = {
   "util",

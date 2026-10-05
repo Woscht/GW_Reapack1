@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.10 — 2026-10-05
+
+- Map shared `central_timelogs_dir` `/mnt/cube/...` → `/Volumes/PRODUKTION/...` on Mac (fixes mkdir failed when DAWs load the Linux path from studio config)
+- Mirror warning now includes the destination path
+
 ## 2.1.9 — 2026-10-05
 
 - Skip mirror and hydrate for **unsaved/untitled** projects (fixes `[PTT] mirror warning: mkdir failed` spam)

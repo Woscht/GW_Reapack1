@@ -198,9 +198,10 @@ function M.maybe_mirror(ctx, opts)
   end
   ctx.last_mirror_warn_ts = now
   ctx.mirror_warned = true
-  local reaper = ctx.reaper
-  if reaper and reaper.ShowConsoleMsg then
-    reaper.ShowConsoleMsg("[PTT] mirror warning: " .. tostring(err) .. "\n")
+  local reaper_api = ctx.reaper
+  if reaper_api and reaper_api.ShowConsoleMsg then
+    reaper_api.ShowConsoleMsg(
+      "[PTT] mirror warning: " .. tostring(err) .. " → " .. tostring(dest) .. "\n")
   end
 end
 
