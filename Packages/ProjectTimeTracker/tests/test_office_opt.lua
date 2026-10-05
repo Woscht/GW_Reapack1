@@ -72,7 +72,7 @@ local fs = {
 }
 local ctx = {
   cfg = { mirror_enabled = true, central_timelogs_dir = tmp .. "/central", mirror_interval_s = 300 },
-  ident = { guid = "G" },
+  ident = { guid = "G", saved = true },
   writer = { path = src },
   office_opted_out = true,
   last_mirror_ts = 0,
@@ -88,13 +88,30 @@ exists = io.open(dest, "r")
 expect(exists ~= nil, "mirror runs when not opted out")
 if exists then exists:close() end
 
+-- Untitled must never mirror (even with GUID)
+os.remove(dest)
+ctx.ident = { guid = "G", saved = false }
+ctx.last_mirror_ts = 0
+M.maybe_mirror(ctx, { force = true, fs = fs, now = 3000 })
+exists = io.open(dest, "r")
+expect(exists == nil, "mirror skipped when unsaved")
+if exists then exists:close() end
+ctx.ident = { guid = "G", saved = true }
+
 local ok_h, reason = M.maybe_hydrate({
   cfg = { mirror_enabled = true, central_timelogs_dir = tmp .. "/central" },
-  ident = { guid = "G" },
+  ident = { guid = "G", saved = true },
   writer = { path = src },
   office_opted_out = true,
 }, { fs = fs })
 expect(ok_h == false and reason == "office_opt_out", "hydrate skipped")
+
+ok_h, reason = M.maybe_hydrate({
+  cfg = { mirror_enabled = true, central_timelogs_dir = tmp .. "/central" },
+  ident = { guid = "G", saved = false },
+  writer = { path = src },
+}, { fs = fs })
+expect(ok_h == false and reason == "unsaved", "hydrate skipped when unsaved")
 
 local ok_n, reason_n = N.maybe_auto_open({
   cfg = { notes_ui_base_url = "http://x", notes_auto_open = true },

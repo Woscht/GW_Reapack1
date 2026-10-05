@@ -97,7 +97,7 @@ write(central_path, '{"event":"long1"}\n{"event":"long2"}\n{"event":"long3"}\n')
 local central_before = fs.read_all(central_path)
 local ctx = {
   cfg = { mirror_enabled = true, central_timelogs_dir = tmp .. "/central", mirror_interval_s = 1 },
-  ident = { guid = "GUIDH" },
+  ident = { guid = "GUIDH", saved = true },
   writer = { path = local_path },
   last_mirror_ts = 0,
   now = function() return 1000 end,

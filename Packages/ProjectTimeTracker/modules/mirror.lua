@@ -140,6 +140,10 @@ function M.maybe_mirror(ctx, opts)
   if PTT.office_opt and PTT.office_opt.is_opted_out_ctx(ctx) then
     return
   end
+  -- Untitled / unsaved: local temp log only — never push ephemeral GUIDs to the office share.
+  if not (ctx.ident and ctx.ident.saved) then
+    return
+  end
   local central = cfg.central_timelogs_dir
   if type(central) ~= "string" or central == "" then
     return
@@ -243,6 +247,9 @@ function M.maybe_hydrate(ctx, opts)
   end
   if PTT.office_opt and PTT.office_opt.is_opted_out_ctx(ctx) then
     return false, "office_opt_out"
+  end
+  if not (ctx.ident and ctx.ident.saved) then
+    return false, "unsaved"
   end
   local central = cfg.central_timelogs_dir
   if type(central) ~= "string" or central == "" then

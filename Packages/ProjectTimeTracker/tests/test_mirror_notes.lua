@@ -80,7 +80,7 @@ local ctx = {
     central_timelogs_dir = tmp .. "/central",
     mirror_interval_s = 300,
   },
-  ident = { guid = "GUID1" },
+  ident = { guid = "GUID1", saved = true },
   writer = { path = src },
   last_mirror_ts = 0,
   now = function() return 1000 end,

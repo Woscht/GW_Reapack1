@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.9 — 2026-10-05
+
+- Skip mirror and hydrate for **unsaved/untitled** projects (fixes `[PTT] mirror warning: mkdir failed` spam)
+
 ## 2.1.8 — 2026-10-05
 
 - Action **Toggle Nicht ins Büro**: sets project ExtState `office_opt_out`

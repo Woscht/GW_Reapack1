@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.8
+-- @version 2.1.9
 -- @changelog
---   + Toggle Nicht ins Büro (opt out of mirror + notes reminder)
+--   + Skip mirror/hydrate for unsaved (untitled) projects
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -18,7 +18,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.8" }
+PTT = { _script_root = root, VERSION = "2.1.9" }
 
 local mods = {
   "util",
