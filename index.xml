@@ -2,6 +2,27 @@
 <index version="1" name="GW_Reapack1">
   <category name="Time Tracking">
     <reapack name="ProjectTimeTracker.lua" type="script" desc="Project Time Tracker">
+      <version name="2.1.7" author="audiocoder" time="2026-10-05T12:30:00Z">
+        <source main="main" file="ProjectTimeTracker.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker.lua</source>
+        <source main="main" file="ProjectTimeTracker_Stop.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker_Stop.lua</source>
+        <source main="main" file="ProjectTimeTracker_OpenNotes.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker_OpenNotes.lua</source>
+        <source file="modules/util.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/util.lua</source>
+        <source file="modules/activity.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/activity.lua</source>
+        <source file="modules/session_wall.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/session_wall.lua</source>
+        <source file="modules/session_rec.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/session_rec.lua</source>
+        <source file="modules/writer.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/writer.lua</source>
+        <source file="modules/crash.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/crash.lua</source>
+        <source file="modules/report.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/report.lua</source>
+        <source file="modules/path_migrate.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/path_migrate.lua</source>
+        <source file="modules/untitled.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/untitled.lua</source>
+        <source file="modules/identity.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/identity.lua</source>
+        <source file="modules/sync_hook.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/sync_hook.lua</source>
+        <source file="modules/bootstrap.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/bootstrap.lua</source>
+        <source file="modules/config.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/config.lua</source>
+        <source file="modules/mirror.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/mirror.lua</source>
+        <source file="modules/notes_ui.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/modules/notes_ui.lua</source>
+        <changelog><![CDATA[v2.1.7 Mirror *.notes.jsonl; auto-open DispoDisco notes UI when status missing>0; Open notes UI action; notes_ui_base_url / notes_auto_open config.]]></changelog>
+      </version>
       <version name="2.1.6" author="audiocoder" time="2026-10-02T15:40:00Z">
         <source main="main" file="ProjectTimeTracker.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker.lua</source>
         <source main="main" file="ProjectTimeTracker_Stop.lua">https://raw.githubusercontent.com/Woscht/GW_Reapack1/main/Packages/ProjectTimeTracker/ProjectTimeTracker_Stop.lua</source>

@@ -2,5 +2,7 @@
   "central_timelogs_dir": "\\\\server\\share\\Zeiterfassung\\timelogs",
   "mirror_interval_s": 300,
   "mirror_save_debounce_s": 30,
-  "mirror_enabled": true
+  "mirror_enabled": true,
+  "notes_ui_base_url": "http://dispodisco-host:3001",
+  "notes_auto_open": true
 }

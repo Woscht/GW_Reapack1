@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.7 — 2026-10-05
+
+- Mirror local `{guid}.notes.jsonl` beside timelogs (always overwrite when local notes exist; never delete central if local missing)
+- Config: `notes_ui_base_url`, `notes_auto_open` (default true)
+- Auto-open DispoDisco notes UI on stop / project switch only when `/notes/status` reports `missing > 0` (rate-limited; no open if status fails)
+- New action: **Project Time Tracker: Open notes UI** (always opens)
+
 ## 2.1.6 — 2026-10-02
 
 - Heartbeat/checkpoint write `span_accum` / `rec_accum` (save + rec-stop + heartbeat) so crash recovery and live mirrors keep progress; billing still only from session/rec end

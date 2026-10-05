@@ -1,11 +1,12 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.6
+-- @version 2.1.7
 -- @changelog
---   + Checkpoints + mirror hydrate/never-shrink (local→SMB safe)
+--   + Notes UI auto-open (missing status) + mirror *.notes.jsonl sidecar
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
+--   ProjectTimeTracker_OpenNotes.lua
 --   [nomain] modules/*.lua
 
 -- ProjectTimeTracker.lua — entry: load modules and start bootstrap
@@ -16,7 +17,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.6" }
+PTT = { _script_root = root, VERSION = "2.1.7" }
 
 local mods = {
   "util",
@@ -32,6 +33,7 @@ local mods = {
   "sync_hook",
   "config",
   "mirror",
+  "notes_ui",
   "bootstrap",
 }
 

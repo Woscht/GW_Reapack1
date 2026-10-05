@@ -15,6 +15,8 @@ M.DEFAULTS = {
   mirror_save_debounce_s = 30,
   mirror_enabled = true,
   central_timelogs_dir = "",
+  notes_ui_base_url = "",
+  notes_auto_open = true,
 }
 
 local function copy_defaults()
@@ -23,6 +25,8 @@ local function copy_defaults()
     mirror_save_debounce_s = M.DEFAULTS.mirror_save_debounce_s,
     mirror_enabled = M.DEFAULTS.mirror_enabled,
     central_timelogs_dir = M.DEFAULTS.central_timelogs_dir,
+    notes_ui_base_url = M.DEFAULTS.notes_ui_base_url,
+    notes_auto_open = M.DEFAULTS.notes_auto_open,
   }
 end
 
@@ -253,6 +257,13 @@ function M.load_from_text(text)
   end
   if type(obj.mirror_enabled) == "boolean" then
     cfg.mirror_enabled = obj.mirror_enabled
+  end
+  if obj.notes_ui_base_url ~= nil then
+    local u = tostring(obj.notes_ui_base_url):match("^%s*(.-)%s*$") or ""
+    cfg.notes_ui_base_url = u
+  end
+  if type(obj.notes_auto_open) == "boolean" then
+    cfg.notes_auto_open = obj.notes_auto_open
   end
   return cfg
 end

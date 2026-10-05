@@ -368,6 +368,9 @@ function M.run(reaper)
       })
       -- Force mirror after script_stop so the central share includes the stop summary
       PTT.mirror.maybe_mirror(ctx, { force = true })
+      if PTT.notes_ui and PTT.notes_ui.maybe_auto_open then
+        PTT.notes_ui.maybe_auto_open(ctx)
+      end
       reaper.ShowConsoleMsg(string.format(
         "[PTT] Stopped. Session-Span: %.1fs  Rec-Rolling: %.1fs\n",
         sum.session_span_s, sum.rec_rolling_s))
@@ -381,6 +384,9 @@ function M.run(reaper)
     if untitled and ctx.ident and ctx.ident.saved then
       close_open_sessions(ctx, "project_close")
       PTT.mirror.maybe_mirror(ctx, { force = true })
+      if PTT.notes_ui and PTT.notes_ui.maybe_auto_open then
+        PTT.notes_ui.maybe_auto_open(ctx)
+      end
     end
 
     local now = ctx.now()
@@ -427,6 +433,10 @@ function M.run(reaper)
         close_open_sessions(ctx, "identity_pre_mirror")
       end
       PTT.mirror.maybe_mirror(ctx, { force = true })
+      -- Remind documentation for the project being left (before identity swap).
+      if PTT.notes_ui and PTT.notes_ui.maybe_auto_open then
+        PTT.notes_ui.maybe_auto_open(ctx)
+      end
       local ok_apply, err_apply = pcall(apply_identity_change, ctx, ctx.ident, curr, diff)
       if not ok_apply then
         reaper.ShowConsoleMsg("[PTT] identity change error: " .. tostring(err_apply) .. "\n")

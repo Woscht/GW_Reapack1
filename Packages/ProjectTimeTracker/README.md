@@ -102,9 +102,21 @@ Example config (placeholders): `deploy/example_ptt_config.json` in this repo.
   "central_timelogs_dir": "\\\\server\\share\\Zeiterfassung\\timelogs",
   "mirror_interval_s": 300,
   "mirror_save_debounce_s": 30,
-  "mirror_enabled": true
+  "mirror_enabled": true,
+  "notes_ui_base_url": "http://dispodisco-host:3001",
+  "notes_auto_open": true
 }
 ```
+
+### Block notes (DispoDisco)
+
+- Local sidecar: `{project}/timetracker/{guid}.notes.jsonl` (mirrored to central as `{guid}.notes.jsonl` when present).
+- `notes_ui_base_url`: base URL of the office UI (empty disables auto-open and the Open notes action).
+- `notes_auto_open`: when true, on tracker stop / project switch PTT queries  
+  `{base}/projects/{guid}/notes/status` and opens the notes page only if `missing > 0`  
+  (also rate-limited to once per guid / 30 min). Status HTTP failure → no open.
+- Manual action: **Project Time Tracker: Open notes UI** always opens  
+  `{base}/projects/{guid}/notes?src=reaper`.
 
 On Windows UNC paths in JSON need doubled backslashes (`\\` → `\\\\` in the file).
 

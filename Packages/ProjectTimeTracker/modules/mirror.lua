@@ -174,6 +174,12 @@ function M.maybe_mirror(ctx, opts)
   local ok, err = M.atomic_copy(src, dest, fs)
   if ok and err ~= "skip" then
     ctx.last_mirror_ts = now
+    -- Notes sidecar: always overwrite central when local notes file exists (no shrink guard).
+    local notes_src = M.notes_src_path(src)
+    local notes_dest = M.notes_dest_path(central, guid)
+    if notes_src and notes_dest then
+      M.atomic_copy(notes_src, notes_dest, fs)
+    end
     return
   end
   if ok then
@@ -256,6 +262,28 @@ end
 function M.dest_path(central_dir, guid)
   local dir = tostring(central_dir or ""):gsub("[/\\]+$", "")
   return dir .. "/" .. tostring(guid) .. ".timelog.jsonl"
+end
+
+function M.notes_dest_path(central_dir, guid)
+  local dir = tostring(central_dir or ""):gsub("[/\\]+$", "")
+  return dir .. "/" .. tostring(guid) .. ".notes.jsonl"
+end
+
+function M.notes_src_path(timelog_path)
+  if not timelog_path or timelog_path == "" then
+    return nil
+  end
+  local p = tostring(timelog_path)
+  local notes = p:gsub("%.timelog%.jsonl$", ".notes.jsonl")
+  if notes ~= p then
+    return notes
+  end
+  local dir = parent_dir(p)
+  local guid = p:match("([^/\\]+)%.timelog%.jsonl$")
+  if dir and guid then
+    return dir .. "/" .. guid .. ".notes.jsonl"
+  end
+  return nil
 end
 
 function M.atomic_copy(src, dest, fs)
