@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.11 — 2026-10-05
+
+- Console warnings when `notes_ui_base_url` is empty, notes status is unreachable, or notes UI opens
+- Notes status HTTP timeout default 3s (NFS / office reingest headroom)
+
 ## 2.1.10 — 2026-10-05
 
 - Map shared `central_timelogs_dir` `/mnt/cube/...` → `/Volumes/PRODUKTION/...` on Mac (fixes mkdir failed when DAWs load the Linux path from studio config)

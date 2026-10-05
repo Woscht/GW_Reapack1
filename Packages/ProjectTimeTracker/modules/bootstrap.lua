@@ -26,6 +26,13 @@ local function load_ptt_config(reaper)
         "[PTT] no ptt_config.json found (check /Volumes/PRODUKTION or UNC); mirror disabled\n")
     end
   end
+  if cfg.notes_auto_open ~= false then
+    local base = cfg.notes_ui_base_url or ""
+    if base == "" then
+      reaper.ShowConsoleMsg(
+        "[PTT] notes_auto_open is on but notes_ui_base_url is empty — documentation page will not open\n")
+    end
+  end
   return cfg
 end
 

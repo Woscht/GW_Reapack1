@@ -72,16 +72,22 @@ ok, reason = N.maybe_auto_open({
 })
 expect(ok == false and reason == "complete", "no open when missing=0")
 
+local fail_msgs = {}
 ok, reason = N.maybe_auto_open({
   cfg = { notes_ui_base_url = "http://office:3001", notes_auto_open = true },
   ident = { guid = "G3", saved = true },
   now = function() return 1 end,
   notes_last_open_ts = {},
+  reaper = {
+    ShowConsoleMsg = function(s) fail_msgs[#fail_msgs + 1] = s end,
+  },
 }, {
   http_get = function() return nil end,
   open_fn = function() error("should not open on fail") end,
 })
 expect(ok == false and reason == "status_failed", "no open on status failure")
+expect(#fail_msgs == 1 and fail_msgs[1]:find("notes status unreachable", 1, true) ~= nil,
+  "console warns once on status failure")
 
 local man_opened = {}
 ok, reason = N.open_manual({
@@ -92,5 +98,19 @@ ok, reason = N.open_manual({
   open_fn = function(url) man_opened[#man_opened + 1] = url end,
 })
 expect(ok == true and man_opened[1]:find("src=reaper") ~= nil, "manual always opens")
+
+local no_base_msgs = {}
+ok, reason = N.open_manual({
+  cfg = { notes_ui_base_url = "" },
+  ident = { guid = "GM", saved = true },
+  reaper = {
+    ShowConsoleMsg = function(s) no_base_msgs[#no_base_msgs + 1] = s end,
+  },
+}, {
+  open_fn = function() error("should not open") end,
+})
+expect(ok == false and reason == "no_base", "manual no_base")
+expect(#no_base_msgs == 1 and no_base_msgs[1]:find("notes_ui_base_url is empty", 1, true) ~= nil,
+  "manual empty base console warn")
 
 return fails

@@ -1,5 +1,5 @@
 -- @description Project Time Tracker: Toggle Nicht ins Büro
--- @version 2.1.10
+-- @version 2.1.11
 -- @author audiocoder
 -- @provides [main] .
 
@@ -12,7 +12,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.10" }
+PTT = { _script_root = root, VERSION = "2.1.11" }
 dofile(root .. "modules/office_opt.lua")
 
 local _, fn = reaper.EnumProjects(-1, "")

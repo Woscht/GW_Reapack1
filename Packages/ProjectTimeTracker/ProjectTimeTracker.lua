@@ -1,6 +1,6 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.10
+-- @version 2.1.11
 -- @changelog
 --   + Map /mnt/cube central path to /Volumes on Mac (fixes mkdir failed)
 -- @provides
@@ -18,7 +18,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.10" }
+PTT = { _script_root = root, VERSION = "2.1.11" }
 
 local mods = {
   "util",

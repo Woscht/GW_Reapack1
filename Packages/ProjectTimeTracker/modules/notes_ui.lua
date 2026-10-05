@@ -43,7 +43,8 @@ function M.status_url(base, guid, qs)
 end
 
 function M.fetch_missing(status_url, http_get, timeout_s)
-  timeout_s = timeout_s or 2
+  -- NFS status+reingest needs a little headroom beyond a bare localhost ping.
+  timeout_s = timeout_s or 3
   if type(http_get) ~= "function" then
     return nil
   end
@@ -59,7 +60,7 @@ function M.fetch_missing(status_url, http_get, timeout_s)
 end
 
 function M.default_http_get(url, timeout_s)
-  timeout_s = timeout_s or 2
+  timeout_s = timeout_s or 3
   -- curl is available on studio Linux/macOS; if missing, auto-open skips (nil).
   local cmd = string.format('curl -s -m %d %q 2>/dev/null', timeout_s, url)
   local h = io.popen(cmd)
@@ -133,8 +134,14 @@ function M.maybe_auto_open(ctx, opts)
   local qs = opts.qs or ""
   local status = M.status_url(base, guid, qs)
   local http_get = opts.http_get or M.default_http_get
-  local missing = M.fetch_missing(status, http_get, opts.timeout_s or 2)
+  local missing = M.fetch_missing(status, http_get, opts.timeout_s or 3)
   if missing == nil then
+    local reaper_api = ctx.reaper
+    if reaper_api and reaper_api.ShowConsoleMsg and not ctx._notes_status_warned then
+      ctx._notes_status_warned = true
+      reaper_api.ShowConsoleMsg(
+        "[PTT] notes status unreachable (" .. tostring(status) .. ") — auto-open skipped\n")
+    end
     return false, "status_failed"
   end
   if missing <= 0 then
@@ -144,6 +151,9 @@ function M.maybe_auto_open(ctx, opts)
   local open_fn = opts.open_fn or M.open
   open_fn(url, ctx.reaper)
   ctx.notes_last_open_ts[guid] = now
+  if ctx.reaper and ctx.reaper.ShowConsoleMsg then
+    ctx.reaper.ShowConsoleMsg("[PTT] opening notes UI (" .. tostring(missing) .. " undocumented)\n")
+  end
   return true, "opened"
 end
 
