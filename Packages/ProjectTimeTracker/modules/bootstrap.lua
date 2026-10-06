@@ -4,6 +4,12 @@ local M = PTT.bootstrap
 
 function M.mark_occupancy(ctx)
   ctx.occupancy_since_iso = PTT.util.now_iso(ctx.time_precise)
+  if PTT.occupancy and PTT.occupancy.reset_flags then
+    PTT.occupancy.reset_flags(ctx)
+  else
+    ctx.occupancy_save_seen = false
+    ctx.occupancy_dirty_seen = false
+  end
 end
 
 function M.after_session_flush(ctx)
@@ -228,6 +234,33 @@ local function close_open_sessions(ctx, reason)
   end
 end
 
+--- Close sessions; discard occupancy JSONL when reference / Don't Save; else mirror + Projektdoku.
+function M.finish_leave(ctx, reason)
+  local dirty_at_leave = ctx.was_dirty == true
+  close_open_sessions(ctx, reason)
+  local save_seen = ctx.occupancy_save_seen == true
+  local discard = true
+  if PTT.occupancy and PTT.occupancy.should_discard then
+    discard = PTT.occupancy.should_discard(save_seen, dirty_at_leave)
+  elseif save_seen and not dirty_at_leave then
+    discard = false
+  end
+  if discard then
+    if PTT.occupancy and PTT.occupancy.strip_events_since and ctx.writer and ctx.writer.path then
+      PTT.occupancy.strip_events_since(ctx.writer.path, ctx.occupancy_since_iso)
+    end
+    PTT.mirror.maybe_mirror(ctx, { force = true, allow_shrink = true })
+    if ctx.reaper and ctx.reaper.ShowConsoleMsg then
+      ctx.reaper.ShowConsoleMsg(
+        "[PTT] occupancy discarded (unsaved/reference) — no Projektdoku\n")
+    end
+    return "discarded"
+  end
+  PTT.mirror.maybe_mirror(ctx, { force = true })
+  M.after_session_flush(ctx)
+  return "kept"
+end
+
 local function apply_identity_change(ctx, prev, curr, diff)
   if diff.same_folder_rename then
     -- Ensure guid stays persisted under the new filename after Save As.
@@ -376,17 +409,18 @@ function M.run(reaper)
   local function tick()
     if reaper.GetExtState(EXT_NS, EXT_RUNNING) ~= "1" then
       if not ctx.notes_stopping then
-        close_open_sessions(ctx, "stop")
+        local leave = M.finish_leave(ctx, "stop")
         local sum = PTT.report.sum_log(read_file(ctx.writer.path))
-        emit(ctx, {
-          event = "script_stop",
-          details = {
-            session_span_s = sum.session_span_s,
-            rec_rolling_s = sum.rec_rolling_s,
-          },
-        })
-        PTT.mirror.maybe_mirror(ctx, { force = true })
-        M.after_session_flush(ctx)
+        if leave == "kept" then
+          emit(ctx, {
+            event = "script_stop",
+            details = {
+              session_span_s = sum.session_span_s,
+              rec_rolling_s = sum.rec_rolling_s,
+            },
+          })
+          PTT.mirror.maybe_mirror(ctx, { force = true })
+        end
         ctx.notes_stopping = true
         ctx._stop_sum = sum
       end
@@ -413,9 +447,10 @@ function M.run(reaper)
     -- Best-effort project close: flush old log, but do NOT reset ctx.ident —
     -- leave identity transition to apply_identity_change so writer.path stays in sync.
     if untitled and ctx.ident and ctx.ident.saved then
-      close_open_sessions(ctx, "project_close")
-      PTT.mirror.maybe_mirror(ctx, { force = true })
-      M.after_session_flush(ctx)
+      M.finish_leave(ctx, "project_close")
+      ctx._left_project_this_tick = true
+    else
+      ctx._left_project_this_tick = false
     end
 
     local now = ctx.now()
@@ -457,13 +492,13 @@ function M.run(reaper)
       diff = PTT.identity.diff(ctx.ident, curr)
     end
     if diff.guid_changed or diff.path_changed or diff.became_saved or diff.same_folder_rename then
-      -- Close open sessions first so the pre-switch mirror includes session_end.
-      if diff.guid_changed or diff.path_changed or diff.became_saved then
-        close_open_sessions(ctx, "identity_pre_mirror")
+      if not ctx._left_project_this_tick then
+        if diff.guid_changed or diff.path_changed or diff.became_saved then
+          M.finish_leave(ctx, "identity_pre_mirror")
+        else
+          PTT.mirror.maybe_mirror(ctx, { force = true })
+        end
       end
-      PTT.mirror.maybe_mirror(ctx, { force = true })
-      -- Prompt documentation for the project being left (before identity swap).
-      M.after_session_flush(ctx)
       local ok_apply, err_apply = pcall(apply_identity_change, ctx, ctx.ident, curr, diff)
       if not ok_apply then
         reaper.ShowConsoleMsg("[PTT] identity change error: " .. tostring(err_apply) .. "\n")
@@ -489,6 +524,9 @@ function M.run(reaper)
     local debounce = (ctx.cfg and ctx.cfg.mirror_save_debounce_s) or 30
     local force_save_mirror = PTT.mirror.should_force_on_save(
       ctx.was_dirty, curr_dirty, now, ctx.last_save_mirror_ts, debounce)
+    if PTT.occupancy and PTT.occupancy.note_dirty_transition then
+      PTT.occupancy.note_dirty_transition(ctx, ctx.was_dirty, curr_dirty)
+    end
     ctx.was_dirty = curr_dirty
 
     local wall_out = PTT.session_wall.tick(ctx.wall, {

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.2 — 2026-10-06
+
+- Unsaved / reference occupancy: strip JSONL for this opening, no Projektdoku, shrink-mirror to central
+- Projektdoku shows HTML documentation URL / open-in-browser
+
 ## 2.2.1 — 2026-10-06
 
 - Dialog title **Projektdoku**; project name in title and large in-window label

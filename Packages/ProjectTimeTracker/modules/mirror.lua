@@ -166,17 +166,19 @@ function M.maybe_mirror(ctx, opts)
   local local_data = fs.read_all(src)
   local central_data = fs.read_all(dest)
   if not M.should_overwrite_central(local_data, central_data) then
-    local last_warn = ctx.last_mirror_warn_ts or 0
-    if now - last_warn >= M.WARN_INTERVAL_S then
-      ctx.last_mirror_warn_ts = now
-      ctx.mirror_warned = true
-      local reaper = ctx.reaper
-      if reaper and reaper.ShowConsoleMsg then
-        reaper.ShowConsoleMsg(
-          "[PTT] mirror skipped: central log longer than local (hydrate or copy timetracker/)\n")
+    if not opts.allow_shrink then
+      local last_warn = ctx.last_mirror_warn_ts or 0
+      if now - last_warn >= M.WARN_INTERVAL_S then
+        ctx.last_mirror_warn_ts = now
+        ctx.mirror_warned = true
+        local reaper = ctx.reaper
+        if reaper and reaper.ShowConsoleMsg then
+          reaper.ShowConsoleMsg(
+            "[PTT] mirror skipped: central log longer than local (hydrate or copy timetracker/)\n")
+        end
       end
+      return
     end
-    return
   end
   local ok, err = M.atomic_copy(src, dest, fs)
   if ok and err ~= "skip" then

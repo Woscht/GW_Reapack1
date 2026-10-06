@@ -160,10 +160,12 @@ function M.begin(ctx, opts)
   if PTT.mirror and PTT.mirror.notes_src_path and ctx.writer then
     notes_path = PTT.mirror.notes_src_path(ctx.writer.path)
   end
+  local notes_page_url = N.notes_url(base, guid, "")
   ctx.notes_prompt = {
     guid = guid,
     project_name = tostring((ctx.ident and ctx.ident.name) or ""),
     notes_path = notes_path,
+    notes_page_url = notes_page_url,
     central = (ctx.cfg and ctx.cfg.central_timelogs_dir) or "",
     machine = ctx.machine_id or "",
     prompt = prompt,
@@ -207,6 +209,9 @@ function M.run_fallback(ctx, opts)
     local cap = kind .. ":"
     if (st.older_missing or 0) > 0 then
       cap = tostring(st.older_missing) .. " ältere Blöcke ohne Text — im Office nachtragen.," .. cap
+    end
+    if st.notes_page_url and st.notes_page_url ~= "" then
+      cap = "HTML: " .. tostring(st.notes_page_url) .. "," .. cap
     end
     local ok, text = user_inputs(title, cap, "")
     if not ok then
@@ -293,6 +298,18 @@ function M.draw_imgui(ctx, opts)
         r.ImGui_Text(
           ic,
           tostring(st.older_missing) .. " ältere Blöcke ohne Text — im Office nachtragen.")
+      end
+      if st.notes_page_url and st.notes_page_url ~= "" then
+        r.ImGui_Text(ic, "HTML-Dokumentation:")
+        if r.ImGui_TextLinkOpenURL then
+          r.ImGui_TextLinkOpenURL(ic, st.notes_page_url, st.notes_page_url)
+        elseif r.ImGui_Button(ic, "Im Browser öffnen") then
+          if PTT.notes_ui and PTT.notes_ui.open then
+            PTT.notes_ui.open(st.notes_page_url, r)
+          end
+        else
+          r.ImGui_Text(ic, st.notes_page_url)
+        end
       end
       local can = M.can_save(st.texts)
       if r.ImGui_BeginDisabled and not can then

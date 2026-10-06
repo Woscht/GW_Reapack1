@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.2.1
+-- @version 2.2.2
 -- @changelog
---   + Projektdoku window larger; shows project name
+--   + Discard unsaved/reference occupancy; Projektdoku HTML link
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -18,7 +18,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.2.1" }
+PTT = { _script_root = root, VERSION = "2.2.2" }
 
 local mods = {
   "util",
@@ -37,6 +37,7 @@ local mods = {
   "mirror",
   "notes_ui",
   "notes_prompt",
+  "occupancy",
   "bootstrap",
 }
 

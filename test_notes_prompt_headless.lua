@@ -22,12 +22,12 @@ local function ok(msg)
 end
 
 local function load_modules()
-  PTT = { _script_root = PKG .. "/", VERSION = "2.2.1" }
+  PTT = { _script_root = PKG .. "/", VERSION = "2.2.2" }
   local mods = {
     "util", "activity", "session_wall", "session_rec", "writer",
     "crash", "report", "path_migrate", "untitled", "identity",
-    "sync_hook", "config", "office_opt", "mirror", "notes_ui",
-    "notes_prompt", "bootstrap",
+    "sync_hook", "config", "office_opt", "mirror", "occupancy",
+    "notes_ui", "notes_prompt", "bootstrap",
   }
   for _, m in ipairs(mods) do
     local path = PKG .. "/modules/" .. m .. ".lua"
@@ -97,6 +97,11 @@ local function main()
   end
   if PTT.notes_prompt.WINDOW_W < 700 or PTT.notes_prompt.FIELD_H < 150 then
     fail("window/field size too small")
+    return
+  end
+  local nurl = tostring(pctx.notes_prompt.notes_page_url or "")
+  if not nurl:find("/projects/" .. guid .. "/notes", 1, true) then
+    fail("notes_page_url missing: " .. nurl)
     return
   end
   pctx.notes_prompt.notes_path = notes_path
