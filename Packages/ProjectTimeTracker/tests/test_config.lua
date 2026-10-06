@@ -105,4 +105,10 @@ local none_cfg, none_src = C.load_from_paths({ "/nope.json" }, fake_open)
 expect(none_src == nil, "no file source nil")
 expect(none_cfg.mirror_interval_s == 300, "no file defaults")
 
+local arr_obj, arr_err = C.parse_json_object(
+  '{"prompt":[{"block_id":"e1","kind":"edit"}],"missing":2}')
+expect(arr_err == nil, "parse object with array")
+expect(arr_obj and arr_obj.missing == 2, "array parent missing")
+expect(arr_obj and arr_obj.prompt and arr_obj.prompt[1].block_id == "e1", "array prompt id")
+
 return fails

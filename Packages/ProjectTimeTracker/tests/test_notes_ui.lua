@@ -7,6 +7,7 @@ local function load_mod(name)
 end
 
 _G.PTT = {}
+load_mod("config")
 load_mod("office_opt")
 load_mod("notes_ui")
 local N = PTT.notes_ui
@@ -112,5 +113,13 @@ ok, reason = N.open_manual({
 expect(ok == false and reason == "no_base", "manual no_base")
 expect(#no_base_msgs == 1 and no_base_msgs[1]:find("notes_ui_base_url is empty", 1, true) ~= nil,
   "manual empty base console warn")
+
+local st = N.fetch_status("http://x", function()
+  return '{"blocks":3,"missing":2,"older_missing":1,"prompt":[{"block_id":"e1","kind":"edit","start":"s","end":"e","duration_s":10,"machine":"M"}]}'
+end)
+expect(st and st.missing == 2 and st.older_missing == 1, "fetch_status meta")
+expect(st and st.prompt and st.prompt[1].block_id == "e1", "fetch_status prompt")
+expect(N.fetch_status("http://x", function() return nil end) == nil, "fetch_status nil")
+expect(N.query_encode("2026-10-06T08:00:00.000Z"):find("%%") ~= nil, "encode colon")
 
 return fails

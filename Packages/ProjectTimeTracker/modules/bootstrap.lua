@@ -2,6 +2,16 @@ PTT = PTT or {}
 PTT.bootstrap = {}
 local M = PTT.bootstrap
 
+function M.mark_occupancy(ctx)
+  ctx.occupancy_since_iso = PTT.util.now_iso(ctx.time_precise)
+end
+
+function M.after_session_flush(ctx)
+  if PTT.notes_prompt and PTT.notes_prompt.begin then
+    PTT.notes_prompt.begin(ctx)
+  end
+end
+
 local EXT_NS = "ProjectTimeTracker"
 local EXT_RUNNING = "running"
 local EXT_CONFIG_PATH = "ptt_config_path"
@@ -30,7 +40,7 @@ local function load_ptt_config(reaper)
     local base = cfg.notes_ui_base_url or ""
     if base == "" then
       reaper.ShowConsoleMsg(
-        "[PTT] notes_auto_open is on but notes_ui_base_url is empty — documentation page will not open\n")
+        "[PTT] notes_auto_open is on but notes_ui_base_url is empty — Arbeitskommentar-Dialog nicht möglich\n")
     end
   end
   return cfg
@@ -346,6 +356,8 @@ function M.run(reaper)
     now = function() return os.time() end,
   }
 
+  M.mark_occupancy(ctx)
+
   -- Pull central history before crash recovery when local is missing/short.
   PTT.mirror.maybe_hydrate(ctx)
 
@@ -363,25 +375,37 @@ function M.run(reaper)
 
   local function tick()
     if reaper.GetExtState(EXT_NS, EXT_RUNNING) ~= "1" then
-      close_open_sessions(ctx, "stop")
-      -- optional report to console summary
-      local sum = PTT.report.sum_log(read_file(ctx.writer.path))
-      emit(ctx, {
-        event = "script_stop",
-        details = {
-          session_span_s = sum.session_span_s,
-          rec_rolling_s = sum.rec_rolling_s,
-        },
-      })
-      -- Force mirror after script_stop so the central share includes the stop summary
-      PTT.mirror.maybe_mirror(ctx, { force = true })
-      if PTT.notes_ui and PTT.notes_ui.maybe_auto_open then
-        PTT.notes_ui.maybe_auto_open(ctx)
+      if not ctx.notes_stopping then
+        close_open_sessions(ctx, "stop")
+        local sum = PTT.report.sum_log(read_file(ctx.writer.path))
+        emit(ctx, {
+          event = "script_stop",
+          details = {
+            session_span_s = sum.session_span_s,
+            rec_rolling_s = sum.rec_rolling_s,
+          },
+        })
+        PTT.mirror.maybe_mirror(ctx, { force = true })
+        M.after_session_flush(ctx)
+        ctx.notes_stopping = true
+        ctx._stop_sum = sum
       end
+      if ctx.notes_prompt and PTT.notes_prompt and PTT.notes_prompt.tick then
+        local r = PTT.notes_prompt.tick(ctx)
+        if r == "open" then
+          reaper.defer(tick)
+          return
+        end
+      end
+      local sum = ctx._stop_sum or { session_span_s = 0, rec_rolling_s = 0 }
       reaper.ShowConsoleMsg(string.format(
         "[PTT] Stopped. Session-Span: %.1fs  Rec-Rolling: %.1fs\n",
         sum.session_span_s, sum.rec_rolling_s))
       return
+    end
+
+    if ctx.notes_prompt and PTT.notes_prompt and PTT.notes_prompt.tick then
+      PTT.notes_prompt.tick(ctx)
     end
 
     local _, fn = reaper.EnumProjects(-1, "")
@@ -391,9 +415,7 @@ function M.run(reaper)
     if untitled and ctx.ident and ctx.ident.saved then
       close_open_sessions(ctx, "project_close")
       PTT.mirror.maybe_mirror(ctx, { force = true })
-      if PTT.notes_ui and PTT.notes_ui.maybe_auto_open then
-        PTT.notes_ui.maybe_auto_open(ctx)
-      end
+      M.after_session_flush(ctx)
     end
 
     local now = ctx.now()
@@ -440,14 +462,15 @@ function M.run(reaper)
         close_open_sessions(ctx, "identity_pre_mirror")
       end
       PTT.mirror.maybe_mirror(ctx, { force = true })
-      -- Remind documentation for the project being left (before identity swap).
-      if PTT.notes_ui and PTT.notes_ui.maybe_auto_open then
-        PTT.notes_ui.maybe_auto_open(ctx)
-      end
+      -- Prompt documentation for the project being left (before identity swap).
+      M.after_session_flush(ctx)
       local ok_apply, err_apply = pcall(apply_identity_change, ctx, ctx.ident, curr, diff)
       if not ok_apply then
         reaper.ShowConsoleMsg("[PTT] identity change error: " .. tostring(err_apply) .. "\n")
         ctx.ident = curr
+      end
+      if diff.guid_changed or diff.path_changed or diff.became_saved then
+        M.mark_occupancy(ctx)
       end
       -- New path/GUID: pull central history if local is empty/short, then push.
       PTT.mirror.maybe_hydrate(ctx)

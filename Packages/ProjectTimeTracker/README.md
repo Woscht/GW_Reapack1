@@ -123,13 +123,15 @@ opt-out, hide it in DispoDisco with **Löschen** if needed.
 
 ### Block notes (DispoDisco)
 
-- Local sidecar: `{project}/timetracker/{guid}.notes.jsonl` (mirrored to central as `{guid}.notes.jsonl` when present).
-- `notes_ui_base_url`: base URL of the office UI (empty disables auto-open and the Open notes action).
-- `notes_auto_open`: when true, on tracker stop / project switch PTT queries  
-  `{base}/projects/{guid}/notes/status` and opens the notes page only if `missing > 0`  
-  (also rate-limited to once per guid / 30 min). Status HTTP failure → no open.
-- Manual action: **Project Time Tracker: Open notes UI** always opens  
-  `{base}/projects/{guid}/notes?src=reaper`.
+- Local sidecar: `{project}/timetracker/{guid}.notes.jsonl` (copied to central as `{guid}.notes.jsonl` when present).
+- `notes_ui_base_url`: office UI base (empty disables the dialog and the Open notes action).
+- `notes_auto_open`: when true, on tracker stop / project close / project switch PTT queries
+  `{base}/projects/{guid}/notes/status?machine=&since=` and shows an in-REAPER **Arbeitskommentar**
+  dialog if the current occupancy has an undocumented Edit and/or Recording block.
+  ReaImGui is used when installed; otherwise `GetUserInputs`. Status HTTP failure → no dialog.
+- Manual action: **Project Time Tracker: Open notes UI** always opens
+  `{base}/projects/{guid}/notes?src=reaper` (for older undocumented blocks).
+- Recommended: install **ReaImGui** from ReaPack on studio DAWs.
 
 On Windows UNC paths in JSON need doubled backslashes (`\\` → `\\\\` in the file).
 

@@ -168,6 +168,35 @@ local function parse_object(s, i)
   end
 end
 
+local function parse_array(s, i)
+  if s:sub(i, i) ~= "[" then
+    return nil, i, "expected array"
+  end
+  i = skip_ws(s, i + 1)
+  local arr = {}
+  if s:sub(i, i) == "]" then
+    return arr, i + 1
+  end
+  while true do
+    i = skip_ws(s, i)
+    local val, err
+    val, i, err = parse_value(s, i)
+    if err then
+      return nil, i, err
+    end
+    arr[#arr + 1] = val
+    i = skip_ws(s, i)
+    local sep = s:sub(i, i)
+    if sep == "]" then
+      return arr, i + 1
+    end
+    if sep ~= "," then
+      return nil, i, "expected comma or end"
+    end
+    i = i + 1
+  end
+end
+
 parse_value = function(s, i)
   i = skip_ws(s, i)
   local c = s:sub(i, i)
@@ -176,6 +205,9 @@ parse_value = function(s, i)
   end
   if c == "{" then
     return parse_object(s, i)
+  end
+  if c == "[" then
+    return parse_array(s, i)
   end
   if s:sub(i, i + 3) == "true" then
     return true, i + 4

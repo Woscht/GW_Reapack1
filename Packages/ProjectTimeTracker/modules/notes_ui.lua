@@ -42,6 +42,38 @@ function M.status_url(base, guid, qs)
   return url
 end
 
+function M.query_encode(s)
+  s = tostring(s or "")
+  return (s:gsub("([^%w%._%-])", function(c)
+    return string.format("%%%02X", string.byte(c))
+  end))
+end
+
+function M.fetch_status(status_url, http_get, timeout_s)
+  timeout_s = timeout_s or 3
+  if type(http_get) ~= "function" then
+    return nil
+  end
+  local ok, body = pcall(http_get, status_url, timeout_s)
+  if not ok or type(body) ~= "string" or body == "" then
+    return nil
+  end
+  if not PTT.config or type(PTT.config.parse_json_object) ~= "function" then
+    return nil
+  end
+  local obj = select(1, PTT.config.parse_json_object(body))
+  if type(obj) ~= "table" or type(obj.missing) ~= "number" then
+    return nil
+  end
+  if type(obj.prompt) ~= "table" then
+    obj.prompt = {}
+  end
+  if type(obj.older_missing) ~= "number" then
+    obj.older_missing = obj.missing
+  end
+  return obj
+end
+
 function M.fetch_missing(status_url, http_get, timeout_s)
   -- NFS status+reingest needs a little headroom beyond a bare localhost ping.
   timeout_s = timeout_s or 3

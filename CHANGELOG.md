@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.0 — 2026-10-06
+
+- End-of-session **Arbeitskommentar** dialog (ReaImGui; `GetUserInputs` fallback)
+- Prompts only the latest undocumented Edit/Recording of this occupancy; older gaps as a hint
+- Speichern writes the local notes sidecar then copies that file for the captured GUID; Ohne Kommentar once per leave
+- Removed browser auto-open on stop/switch (manual Open notes UI remains)
+- ReaImGui recommended via ReaPack, not a hard `@requires`
+
 ## 2.1.11 — 2026-10-05
 
 - Console warnings when `notes_ui_base_url` is empty, notes status is unreachable, or notes UI opens

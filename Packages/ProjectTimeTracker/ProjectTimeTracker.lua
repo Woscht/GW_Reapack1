@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.1.11
+-- @version 2.2.0
 -- @changelog
---   + Map /mnt/cube central path to /Volumes on Mac (fixes mkdir failed)
+--   + End-session Arbeitskommentar dialog (ReaImGui; GetUserInputs fallback)
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -18,7 +18,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.1.11" }
+PTT = { _script_root = root, VERSION = "2.2.0" }
 
 local mods = {
   "util",
@@ -36,6 +36,7 @@ local mods = {
   "office_opt",
   "mirror",
   "notes_ui",
+  "notes_prompt",
   "bootstrap",
 }
 
