@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.1 — 2026-10-06
+
+- Dialog title **Projektdoku**; project name in title and large in-window label
+- Much larger ImGui window and text fields; skip button **Ohne Projektdoku**
+
 ## 2.2.0 — 2026-10-06
 
 - End-of-session **Arbeitskommentar** dialog (ReaImGui; `GetUserInputs` fallback)

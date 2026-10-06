@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.2.0
+-- @version 2.2.1
 -- @changelog
---   + End-session Arbeitskommentar dialog (ReaImGui; GetUserInputs fallback)
+--   + Projektdoku window larger; shows project name
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -18,7 +18,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.2.0" }
+PTT = { _script_root = root, VERSION = "2.2.1" }
 
 local mods = {
   "util",

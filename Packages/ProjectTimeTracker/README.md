@@ -126,8 +126,8 @@ opt-out, hide it in DispoDisco with **Löschen** if needed.
 - Local sidecar: `{project}/timetracker/{guid}.notes.jsonl` (copied to central as `{guid}.notes.jsonl` when present).
 - `notes_ui_base_url`: office UI base (empty disables the dialog and the Open notes action).
 - `notes_auto_open`: when true, on tracker stop / project close / project switch PTT queries
-  `{base}/projects/{guid}/notes/status?machine=&since=` and shows an in-REAPER **Arbeitskommentar**
-  dialog if the current occupancy has an undocumented Edit and/or Recording block.
+  `{base}/projects/{guid}/notes/status?machine=&since=` and shows an in-REAPER **Projektdoku**
+  dialog (with project name) if the current occupancy has an undocumented Edit and/or Recording block.
   ReaImGui is used when installed; otherwise `GetUserInputs`. Status HTTP failure → no dialog.
 - Manual action: **Project Time Tracker: Open notes UI** always opens
   `{base}/projects/{guid}/notes?src=reaper` (for older undocumented blocks).

@@ -162,6 +162,7 @@ function M.begin(ctx, opts)
   end
   ctx.notes_prompt = {
     guid = guid,
+    project_name = tostring((ctx.ident and ctx.ident.name) or ""),
     notes_path = notes_path,
     central = (ctx.cfg and ctx.cfg.central_timelogs_dir) or "",
     machine = ctx.machine_id or "",
@@ -170,6 +171,15 @@ function M.begin(ctx, opts)
     texts = {},
   }
   return true, "opened"
+end
+
+function M.window_title(st)
+  st = st or {}
+  local name = trim(st.project_name)
+  if name ~= "" then
+    return "Projektdoku — " .. name
+  end
+  return "Projektdoku"
 end
 
 function M.run_fallback(ctx, opts)
@@ -189,6 +199,7 @@ function M.run_fallback(ctx, opts)
       return ok, csv
     end
   end
+  local title = M.window_title(st)
   local texts = {}
   local saved_any = false
   for _, p in ipairs(st.prompt or {}) do
@@ -197,7 +208,7 @@ function M.run_fallback(ctx, opts)
     if (st.older_missing or 0) > 0 then
       cap = tostring(st.older_missing) .. " ältere Blöcke ohne Text — im Office nachtragen.," .. cap
     end
-    local ok, text = user_inputs("Arbeitskommentar", cap, "")
+    local ok, text = user_inputs(title, cap, "")
     if not ok then
       if saved_any then
         M.save(ctx, texts, opts)
@@ -219,6 +230,11 @@ function M.run_fallback(ctx, opts)
   return "skipped"
 end
 
+M.WINDOW_W = 780
+M.WINDOW_H = 520
+M.FIELD_W = 740
+M.FIELD_H = 180
+
 function M.draw_imgui(ctx, opts)
   opts = opts or {}
   local r = ctx.reaper
@@ -230,7 +246,7 @@ function M.draw_imgui(ctx, opts)
     if st.imgui then
       return st.imgui
     end
-    return r.ImGui_CreateContext("PTT-Arbeitskommentar")
+    return r.ImGui_CreateContext("PTT-Projektdoku")
   end)
   if not ok_ctx or not ic then
     M.run_fallback(ctx, opts)
@@ -238,14 +254,37 @@ function M.draw_imgui(ctx, opts)
   end
   st.imgui = ic
   local ok_ui, err = pcall(function()
-    local visible, open = r.ImGui_Begin(ic, "Arbeitskommentar", true)
+    local title = M.window_title(st)
+    if r.ImGui_SetNextWindowSize then
+      local cond = 1
+      if type(r.ImGui_Cond_Always) == "function" then
+        cond = r.ImGui_Cond_Always()
+      elseif type(r.ImGui_Cond_Always) == "number" then
+        cond = r.ImGui_Cond_Always
+      end
+      r.ImGui_SetNextWindowSize(ic, M.WINDOW_W, M.WINDOW_H, cond)
+    end
+    local visible, open = r.ImGui_Begin(ic, title, true)
     if visible then
+      local name = trim(st.project_name)
+      if name ~= "" then
+        if r.ImGui_SetWindowFontScale then
+          r.ImGui_SetWindowFontScale(ic, 1.35)
+          r.ImGui_Text(ic, name)
+          r.ImGui_SetWindowFontScale(ic, 1.0)
+        else
+          r.ImGui_Text(ic, "Projekt: " .. name)
+        end
+        if r.ImGui_Separator then
+          r.ImGui_Separator(ic)
+        end
+      end
       for _, p in ipairs(st.prompt or {}) do
         local kind = (p.kind == "recording") and "Recording" or "Edit"
         r.ImGui_Text(ic, kind .. "  " .. tostring(p.start or "") .. " – " .. tostring(p["end"] or ""))
         st.texts[p.block_id] = st.texts[p.block_id] or ""
         local changed, text = r.ImGui_InputTextMultiline(
-          ic, "##" .. p.block_id, st.texts[p.block_id], 400, 80)
+          ic, "##" .. p.block_id, st.texts[p.block_id], M.FIELD_W, M.FIELD_H)
         if changed then
           st.texts[p.block_id] = text
         end
@@ -268,7 +307,7 @@ function M.draw_imgui(ctx, opts)
       if r.ImGui_SameLine then
         r.ImGui_SameLine(ic)
       end
-      if r.ImGui_Button(ic, "Ohne Kommentar") then
+      if r.ImGui_Button(ic, "Ohne Projektdoku") then
         M.skip(ctx)
       end
     end

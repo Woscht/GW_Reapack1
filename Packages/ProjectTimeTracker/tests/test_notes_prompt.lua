@@ -34,7 +34,7 @@ local function ctx_ok(extra)
   extra = extra or {}
   local c = {
     cfg = extra.cfg or base_cfg,
-    ident = extra.ident or { guid = "G1", saved = true },
+    ident = extra.ident or { guid = "G1", saved = true, name = "Demo.RPP" },
     occupancy_since_iso = extra.since or "2026-10-06T08:00:00.000Z",
     machine_id = extra.machine or "Mac.local",
     writer = extra.writer or { path = "/tmp/ptt_prompt_local/G1.timelog.jsonl" },
@@ -59,7 +59,10 @@ local ctx = ctx_ok()
 local ok, reason = N.begin(ctx, { http_get = function() return body end })
 expect(ok == true and reason == "opened", "begin opened")
 expect(ctx.notes_prompt and ctx.notes_prompt.guid == "G1", "captured guid")
+expect(ctx.notes_prompt.project_name == "Demo.RPP", "captured project name")
 expect(ctx.notes_prompt.notes_path:find("G1.notes.jsonl", 1, true) ~= nil, "notes path")
+expect(N.window_title({ project_name = "Folge18.RPP" }) == "Projektdoku — Folge18.RPP", "title with name")
+expect(N.window_title({}) == "Projektdoku", "title without name")
 
 ok, reason = N.begin(ctx_ok({ since = "" }), { http_get = function() return body end })
 expect(ok == false and reason == "no_since", "no_since")

@@ -40,7 +40,7 @@ local function load_ptt_config(reaper)
     local base = cfg.notes_ui_base_url or ""
     if base == "" then
       reaper.ShowConsoleMsg(
-        "[PTT] notes_auto_open is on but notes_ui_base_url is empty — Arbeitskommentar-Dialog nicht möglich\n")
+        "[PTT] notes_auto_open is on but notes_ui_base_url is empty — Projektdoku-Dialog nicht möglich\n")
     end
   end
   return cfg

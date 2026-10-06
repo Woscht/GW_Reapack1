@@ -22,7 +22,7 @@ local function ok(msg)
 end
 
 local function load_modules()
-  PTT = { _script_root = PKG .. "/", VERSION = "2.2.0" }
+  PTT = { _script_root = PKG .. "/", VERSION = "2.2.1" }
   local mods = {
     "util", "activity", "session_wall", "session_rec", "writer",
     "crash", "report", "path_migrate", "untitled", "identity",
@@ -70,7 +70,7 @@ local function main()
       notes_auto_open = true,
       central_timelogs_dir = central,
     },
-    ident = { guid = guid, saved = true },
+    ident = { guid = guid, saved = true, name = "HeadlessDemo.RPP" },
     occupancy_since_iso = ctx.occupancy_since_iso,
     machine_id = "Mac.local",
     writer = { path = tmp .. "/local/" .. guid .. ".timelog.jsonl" },
@@ -85,6 +85,18 @@ local function main()
   end
   if pctx.notes_prompt.guid ~= guid then
     fail("prompt guid")
+    return
+  end
+  if pctx.notes_prompt.project_name ~= "HeadlessDemo.RPP" then
+    fail("project_name missing")
+    return
+  end
+  if PTT.notes_prompt.window_title(pctx.notes_prompt) ~= "Projektdoku — HeadlessDemo.RPP" then
+    fail("window title: " .. tostring(PTT.notes_prompt.window_title(pctx.notes_prompt)))
+    return
+  end
+  if PTT.notes_prompt.WINDOW_W < 700 or PTT.notes_prompt.FIELD_H < 150 then
+    fail("window/field size too small")
     return
   end
   pctx.notes_prompt.notes_path = notes_path
