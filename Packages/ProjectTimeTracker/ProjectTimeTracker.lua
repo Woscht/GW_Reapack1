@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.2.4
+-- @version 2.2.5
 -- @changelog
---   + Friendly light Projektdoku UI (readable times, rounded cards)
+--   + Fix Always-on: running ExtState no longer blocks start after REAPER restart
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -20,7 +20,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.2.4" }
+PTT = { _script_root = root, VERSION = "2.2.5" }
 
 local mods = {
   "util",

@@ -332,14 +332,40 @@ local function apply_identity_change(ctx, prev, curr, diff)
   ctx.ident = curr
 end
 
+--- Decide start vs toggle-stop. `running` must be session-only: a persisted "1"
+--- from an older build made the next REAPER launch (via __startup.lua) take the
+--- stop branch and exit without starting the tracker.
+function M.start_or_toggle_stop(get_ext, set_ext, del_ext)
+  get_ext = get_ext or function() return "" end
+  set_ext = set_ext or function() end
+  -- Once per REAPER process: scrub disk-persisted "running" from <=2.2.4.
+  if get_ext(EXT_NS, "_boot") ~= "1" then
+    set_ext(EXT_NS, "_boot", "1", false)
+    if type(del_ext) == "function" then
+      del_ext(EXT_NS, EXT_RUNNING, true)
+    else
+      set_ext(EXT_NS, EXT_RUNNING, "", true)
+    end
+    set_ext(EXT_NS, EXT_RUNNING, "0", false)
+  end
+  if get_ext(EXT_NS, EXT_RUNNING) == "1" then
+    set_ext(EXT_NS, EXT_RUNNING, "0", false)
+    return "stop"
+  end
+  set_ext(EXT_NS, EXT_RUNNING, "1", false)
+  return "start"
+end
+
 function M.run(reaper)
   local U = PTT.util
-  local already = reaper.GetExtState(EXT_NS, EXT_RUNNING) == "1"
-  if already then
-    reaper.SetExtState(EXT_NS, EXT_RUNNING, "0", true)
+  local action = M.start_or_toggle_stop(
+    function(ns, key) return reaper.GetExtState(ns, key) end,
+    function(ns, key, val, persist) reaper.SetExtState(ns, key, val, persist) end,
+    reaper.DeleteExtState
+  )
+  if action == "stop" then
     return
   end
-  reaper.SetExtState(EXT_NS, EXT_RUNNING, "1", true)
 
   local resource = reaper.GetResourcePath and reaper.GetResourcePath() or "/tmp"
   local pid = tostring(os.time() % 100000)

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.5 — 2026-10-08
+
+- Fix Always-on / `__startup.lua`: persisted `running` ExtState no longer stops the tracker on the next REAPER launch
+
 ## 2.2.4 — 2026-10-08
 
 - Projektdoku ImGui: helles, gerundetes Layout; lesbare Berlin-Zeiten; Aufnahme/Schnitt-Labels
