@@ -63,6 +63,14 @@ expect(ctx.notes_prompt.project_name == "Demo.RPP", "captured project name")
 expect(ctx.notes_prompt.notes_path:find("G1.notes.jsonl", 1, true) ~= nil, "notes path")
 expect(N.window_title({ project_name = "Folge18.RPP" }) == "Projektdoku — Folge18.RPP", "title with name")
 expect(N.window_title({}) == "Projektdoku", "title without name")
+expect(N.kind_label("recording") == "Aufnahme", "kind recording")
+expect(N.kind_label("edit") == "Schnitt", "kind edit")
+-- 08:25 UTC = 10:25 Europe/Berlin (CEST) on 2026-10-01
+expect(
+  N.format_clock_range("2026-10-01T08:25:00.000Z", "2026-10-01T09:55:00.000Z")
+    == "1. Okt. 2026  ·  10:25 – 11:55",
+  "friendly berlin range: " .. tostring(N.format_clock_range("2026-10-01T08:25:00.000Z", "2026-10-01T09:55:00.000Z")))
+expect(N.WINDOW_W >= 800 and N.FIELD_H >= 180, "friendly window sizes")
 
 ok, reason = N.begin(ctx_ok({ since = "" }), { http_get = function() return body end })
 expect(ok == false and reason == "no_since", "no_since")

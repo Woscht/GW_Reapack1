@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.2.3
+-- @version 2.2.4
 -- @changelog
---   + Always-on enable/disable via Scripts/__startup.lua
+--   + Friendly light Projektdoku UI (readable times, rounded cards)
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -20,7 +20,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.2.3" }
+PTT = { _script_root = root, VERSION = "2.2.4" }
 
 local mods = {
   "util",

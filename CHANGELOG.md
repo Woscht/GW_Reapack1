@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.4 — 2026-10-08
+
+- Projektdoku ImGui: helles, gerundetes Layout; lesbare Berlin-Zeiten; Aufnahme/Schnitt-Labels
+
 ## 2.2.3 — 2026-10-08
 
 - Actions **Always-on aktivieren** / **Always-on deaktivieren** manage `Scripts/__startup.lua`

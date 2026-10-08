@@ -184,6 +184,149 @@ function M.window_title(st)
   return "Projektdoku"
 end
 
+local MONTHS_DE = {
+  "Jan.", "Feb.", "März", "Apr.", "Mai", "Juni",
+  "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez.",
+}
+
+local function dow_sun0(y, m, d)
+  local t = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 }
+  if m < 3 then
+    y = y - 1
+  end
+  return (y + math.floor(y / 4) - math.floor(y / 100) + math.floor(y / 400) + t[m] + d) % 7
+end
+
+local function last_sunday(year, month)
+  local mdays = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
+  if month == 2 and ((year % 4 == 0 and year % 100 ~= 0) or year % 400 == 0) then
+    mdays[2] = 29
+  end
+  local d = mdays[month]
+  while dow_sun0(year, month, d) ~= 0 do
+    d = d - 1
+  end
+  return d
+end
+
+--- Europe/Berlin offset hours for a UTC wall time (CET=1, CEST=2).
+function M.berlin_offset_hours(y, mo, d, h)
+  local mar = last_sunday(y, 3)
+  local oct = last_sunday(y, 10)
+  local after_start = (mo > 3) or (mo == 3 and (d > mar or (d == mar and h >= 1)))
+  local before_end = (mo < 10) or (mo == 10 and (d < oct or (d == oct and h < 1)))
+  if after_start and before_end then
+    return 2
+  end
+  return 1
+end
+
+function M.parse_iso_utc(iso)
+  local y, mo, d, h, mi = tostring(iso or ""):match(
+    "^(%d%d%d%d)%-(%d%d)%-(%d%d)T(%d%d):(%d%d)")
+  if not y then
+    return nil
+  end
+  return {
+    y = tonumber(y),
+    mo = tonumber(mo),
+    d = tonumber(d),
+    h = tonumber(h),
+    mi = tonumber(mi),
+  }
+end
+
+local function add_hours(parts, add)
+  local h = parts.h + add
+  local d = parts.d
+  local mo = parts.mo
+  local y = parts.y
+  local mdays = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
+  if (y % 4 == 0 and y % 100 ~= 0) or y % 400 == 0 then
+    mdays[2] = 29
+  end
+  while h >= 24 do
+    h = h - 24
+    d = d + 1
+    if d > mdays[mo] then
+      d = 1
+      mo = mo + 1
+      if mo > 12 then
+        mo = 1
+        y = y + 1
+        mdays[2] = ((y % 4 == 0 and y % 100 ~= 0) or y % 400 == 0) and 29 or 28
+      end
+    end
+  end
+  while h < 0 do
+    h = h + 24
+    d = d - 1
+    if d < 1 then
+      mo = mo - 1
+      if mo < 1 then
+        mo = 12
+        y = y - 1
+        mdays[2] = ((y % 4 == 0 and y % 100 ~= 0) or y % 400 == 0) and 29 or 28
+      end
+      d = mdays[mo]
+    end
+  end
+  return { y = y, mo = mo, d = d, h = h, mi = parts.mi }
+end
+
+--- Friendly Berlin local parts from UTC ISO, or nil.
+function M.iso_to_berlin(iso)
+  local utc = M.parse_iso_utc(iso)
+  if not utc then
+    return nil
+  end
+  local off = M.berlin_offset_hours(utc.y, utc.mo, utc.d, utc.h)
+  return add_hours(utc, off)
+end
+
+function M.format_berlin_date(parts)
+  if not parts then
+    return ""
+  end
+  return string.format("%d. %s %04d", parts.d, MONTHS_DE[parts.mo] or "?", parts.y)
+end
+
+function M.format_berlin_clock(parts)
+  if not parts then
+    return ""
+  end
+  return string.format("%02d:%02d", parts.h, parts.mi)
+end
+
+--- e.g. "8. Okt. 2026  ·  12:00 – 13:30"
+function M.format_clock_range(start_iso, end_iso)
+  local a = M.iso_to_berlin(start_iso)
+  local b = M.iso_to_berlin(end_iso)
+  if not a or not b then
+    local s = trim(start_iso)
+    local e = trim(end_iso)
+    if s ~= "" and e ~= "" then
+      return s .. " – " .. e
+    end
+    return s ~= "" and s or e
+  end
+  local da = M.format_berlin_date(a)
+  local db = M.format_berlin_date(b)
+  local ca = M.format_berlin_clock(a)
+  local cb = M.format_berlin_clock(b)
+  if da == db then
+    return da .. "  ·  " .. ca .. " – " .. cb
+  end
+  return da .. " " .. ca .. "  –  " .. db .. " " .. cb
+end
+
+function M.kind_label(kind)
+  if kind == "recording" then
+    return "Aufnahme"
+  end
+  return "Schnitt"
+end
+
 function M.run_fallback(ctx, opts)
   opts = opts or {}
   local st = ctx and ctx.notes_prompt
@@ -205,8 +348,9 @@ function M.run_fallback(ctx, opts)
   local texts = {}
   local saved_any = false
   for _, p in ipairs(st.prompt or {}) do
-    local kind = (p.kind == "recording") and "Recording" or "Edit"
-    local cap = kind .. ":"
+    local kind = M.kind_label(p.kind)
+    local when = M.format_clock_range(p.start, p["end"])
+    local cap = kind .. (when ~= "" and (" — " .. when) or "") .. ":"
     if (st.older_missing or 0) > 0 then
       cap = tostring(st.older_missing) .. " ältere Blöcke ohne Text — im Office nachtragen.," .. cap
     end
@@ -235,10 +379,124 @@ function M.run_fallback(ctx, opts)
   return "skipped"
 end
 
-M.WINDOW_W = 780
-M.WINDOW_H = 520
-M.FIELD_W = 740
-M.FIELD_H = 180
+M.WINDOW_W = 860
+M.WINDOW_H = 600
+M.FIELD_W = 800
+M.FIELD_H = 200
+
+-- Soft light organic palette (0xRRGGBBAA)
+local COL = {
+  window_bg = 0xF4F7FAFF,
+  child_bg = 0xFFFFFFFF,
+  text = 0x1E293BFF,
+  muted = 0x64748BFF,
+  frame_bg = 0xEEF3F7FF,
+  frame_bg_active = 0xE2EAF2FF,
+  border = 0xD8E0E8FF,
+  button = 0x0F766EFF,
+  button_hov = 0x0D9488FF,
+  button_act = 0x115E59FF,
+  button_text = 0xFFFFFFFF,
+  secondary = 0xE8EEF3FF,
+  secondary_hov = 0xD9E2ECFF,
+  secondary_text = 0x334155FF,
+  accent_rec = 0xB45309FF,
+  accent_edit = 0x0369A1FF,
+}
+
+local function enum_val(r, name)
+  local v = r["ImGui_" .. name]
+  if type(v) == "function" then
+    return v()
+  end
+  if type(v) == "number" then
+    return v
+  end
+  return nil
+end
+
+local function push_style(r, ic)
+  local nvar, ncol = 0, 0
+  local function svar(name, a, b)
+    local idx = enum_val(r, name)
+    if not idx or not r.ImGui_PushStyleVar then
+      return
+    end
+    if b ~= nil then
+      r.ImGui_PushStyleVar(ic, idx, a, b)
+    else
+      r.ImGui_PushStyleVar(ic, idx, a)
+    end
+    nvar = nvar + 1
+  end
+  local function scol(name, col)
+    local idx = enum_val(r, name)
+    if not idx or not r.ImGui_PushStyleColor then
+      return
+    end
+    r.ImGui_PushStyleColor(ic, idx, col)
+    ncol = ncol + 1
+  end
+  svar("StyleVar_WindowRounding", 14)
+  svar("StyleVar_ChildRounding", 14)
+  svar("StyleVar_FrameRounding", 10)
+  svar("StyleVar_GrabRounding", 8)
+  svar("StyleVar_WindowPadding", 28, 24)
+  svar("StyleVar_FramePadding", 14, 11)
+  svar("StyleVar_ItemSpacing", 14, 12)
+  svar("StyleVar_ItemInnerSpacing", 10, 8)
+  svar("StyleVar_WindowBorderSize", 0)
+  svar("StyleVar_ChildBorderSize", 1)
+  svar("StyleVar_FrameBorderSize", 0)
+  scol("Col_WindowBg", COL.window_bg)
+  scol("Col_ChildBg", COL.child_bg)
+  scol("Col_Text", COL.text)
+  scol("Col_TextDisabled", COL.muted)
+  scol("Col_Border", COL.border)
+  scol("Col_Separator", COL.border)
+  scol("Col_FrameBg", COL.frame_bg)
+  scol("Col_FrameBgHovered", COL.frame_bg_active)
+  scol("Col_FrameBgActive", COL.frame_bg_active)
+  scol("Col_Button", COL.button)
+  scol("Col_ButtonHovered", COL.button_hov)
+  scol("Col_ButtonActive", COL.button_act)
+  scol("Col_ScrollbarBg", 0x00000000)
+  scol("Col_ScrollbarGrab", 0xCBD5E1FF)
+  return nvar, ncol
+end
+
+local function pop_style(r, ic, nvar, ncol)
+  if nvar > 0 and r.ImGui_PopStyleVar then
+    r.ImGui_PopStyleVar(ic, nvar)
+  end
+  if ncol > 0 and r.ImGui_PopStyleColor then
+    r.ImGui_PopStyleColor(ic, ncol)
+  end
+end
+
+local function text_muted(r, ic, s)
+  if r.ImGui_TextColored then
+    r.ImGui_TextColored(ic, COL.muted, s)
+  else
+    r.ImGui_Text(ic, s)
+  end
+end
+
+local function text_scale(r, ic, scale, draw_fn)
+  if r.ImGui_SetWindowFontScale then
+    r.ImGui_SetWindowFontScale(ic, scale)
+    draw_fn()
+    r.ImGui_SetWindowFontScale(ic, 1.0)
+  else
+    draw_fn()
+  end
+end
+
+local function spaced(r, ic, h)
+  if r.ImGui_Dummy then
+    r.ImGui_Dummy(ic, 1, h or 8)
+  end
+end
 
 function M.draw_imgui(ctx, opts)
   opts = opts or {}
@@ -269,66 +527,112 @@ function M.draw_imgui(ctx, opts)
       end
       r.ImGui_SetNextWindowSize(ic, M.WINDOW_W, M.WINDOW_H, cond)
     end
+    local nvar, ncol = push_style(r, ic)
     local visible, open = r.ImGui_Begin(ic, title, true)
     if visible then
       local name = trim(st.project_name)
-      if name ~= "" then
-        if r.ImGui_SetWindowFontScale then
-          r.ImGui_SetWindowFontScale(ic, 1.35)
-          r.ImGui_Text(ic, name)
-          r.ImGui_SetWindowFontScale(ic, 1.0)
-        else
-          r.ImGui_Text(ic, "Projekt: " .. name)
-        end
-        if r.ImGui_Separator then
-          r.ImGui_Separator(ic)
-        end
+      text_scale(r, ic, 1.55, function()
+        r.ImGui_Text(ic, name ~= "" and name or "Projektdoku")
+      end)
+      text_muted(r, ic, "Kurz festhalten, was in diesem Block passiert ist.")
+      spaced(r, ic, 10)
+
+      local child_flags = enum_val(r, "ChildFlags_None") or 0
+      local borders = enum_val(r, "ChildFlags_Borders")
+      if borders then
+        child_flags = child_flags | borders
       end
+      local auto_y = enum_val(r, "ChildFlags_AutoResizeY")
+      if auto_y then
+        child_flags = child_flags | auto_y
+      end
+
       for _, p in ipairs(st.prompt or {}) do
-        local kind = (p.kind == "recording") and "Recording" or "Edit"
-        r.ImGui_Text(ic, kind .. "  " .. tostring(p.start or "") .. " – " .. tostring(p["end"] or ""))
-        st.texts[p.block_id] = st.texts[p.block_id] or ""
-        local changed, text = r.ImGui_InputTextMultiline(
-          ic, "##" .. p.block_id, st.texts[p.block_id], M.FIELD_W, M.FIELD_H)
-        if changed then
-          st.texts[p.block_id] = text
+        local opened = true
+        if r.ImGui_BeginChild then
+          opened = r.ImGui_BeginChild(ic, "##card_" .. tostring(p.block_id), 0, 0, child_flags)
         end
+        if opened then
+          local kind = M.kind_label(p.kind)
+          local kind_col = (p.kind == "recording") and COL.accent_rec or COL.accent_edit
+          if r.ImGui_TextColored then
+            r.ImGui_TextColored(ic, kind_col, kind)
+          else
+            r.ImGui_Text(ic, kind)
+          end
+          spaced(r, ic, 4)
+          text_scale(r, ic, 1.2, function()
+            r.ImGui_Text(ic, M.format_clock_range(p.start, p["end"]))
+          end)
+          spaced(r, ic, 8)
+          text_muted(r, ic, "Deine Notiz")
+          st.texts[p.block_id] = st.texts[p.block_id] or ""
+          local changed, text = r.ImGui_InputTextMultiline(
+            ic, "##" .. p.block_id, st.texts[p.block_id], M.FIELD_W, M.FIELD_H)
+          if changed then
+            st.texts[p.block_id] = text
+          end
+          if r.ImGui_EndChild then
+            r.ImGui_EndChild(ic)
+          end
+        end
+        spaced(r, ic, 6)
       end
+
       if (st.older_missing or 0) > 0 then
-        r.ImGui_Text(
-          ic,
-          tostring(st.older_missing) .. " ältere Blöcke ohne Text — im Office nachtragen.")
+        text_muted(
+          r, ic,
+          tostring(st.older_missing)
+            .. " ältere Blöcke ohne Text — im Office nachtragen.")
       end
       if st.notes_page_url and st.notes_page_url ~= "" then
-        r.ImGui_Text(ic, "HTML-Dokumentation:")
         if r.ImGui_TextLinkOpenURL then
-          r.ImGui_TextLinkOpenURL(ic, st.notes_page_url, st.notes_page_url)
-        elseif r.ImGui_Button(ic, "Im Browser öffnen") then
+          r.ImGui_TextLinkOpenURL(ic, "Dokumentation im Browser öffnen", st.notes_page_url)
+        elseif r.ImGui_Button(ic, "Dokumentation im Browser") then
           if PTT.notes_ui and PTT.notes_ui.open then
             PTT.notes_ui.open(st.notes_page_url, r)
           end
         else
-          r.ImGui_Text(ic, st.notes_page_url)
+          text_muted(r, ic, st.notes_page_url)
         end
       end
+
+      spaced(r, ic, 12)
       local can = M.can_save(st.texts)
       if r.ImGui_BeginDisabled and not can then
         r.ImGui_BeginDisabled(ic)
       end
-      if r.ImGui_Button(ic, "Speichern") and can then
+      local save_label = "  Speichern  "
+      if r.ImGui_Button(ic, save_label) and can then
         M.save(ctx, st.texts, opts)
       end
       if r.ImGui_EndDisabled and not can then
         r.ImGui_EndDisabled(ic)
       end
       if r.ImGui_SameLine then
-        r.ImGui_SameLine(ic)
+        r.ImGui_SameLine(ic, nil, 16)
       end
-      if r.ImGui_Button(ic, "Ohne Projektdoku") then
+      -- Softer secondary action
+      local sc = 0
+      if r.ImGui_PushStyleColor then
+        local b = enum_val(r, "Col_Button")
+        local bh = enum_val(r, "Col_ButtonHovered")
+        local ba = enum_val(r, "Col_ButtonActive")
+        local t = enum_val(r, "Col_Text")
+        if b then r.ImGui_PushStyleColor(ic, b, COL.secondary); sc = sc + 1 end
+        if bh then r.ImGui_PushStyleColor(ic, bh, COL.secondary_hov); sc = sc + 1 end
+        if ba then r.ImGui_PushStyleColor(ic, ba, COL.secondary_hov); sc = sc + 1 end
+        if t then r.ImGui_PushStyleColor(ic, t, COL.secondary_text); sc = sc + 1 end
+      end
+      if r.ImGui_Button(ic, "  Ohne Projektdoku  ") then
         M.skip(ctx)
+      end
+      if sc > 0 and r.ImGui_PopStyleColor then
+        r.ImGui_PopStyleColor(ic, sc)
       end
     end
     r.ImGui_End(ic)
+    pop_style(r, ic, nvar, ncol)
     if open == false then
       M.skip(ctx)
     end

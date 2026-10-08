@@ -22,7 +22,7 @@ local function ok(msg)
 end
 
 local function load_modules()
-  PTT = { _script_root = PKG .. "/", VERSION = "2.2.2" }
+  PTT = { _script_root = PKG .. "/", VERSION = "2.2.4" }
   local mods = {
     "util", "activity", "session_wall", "session_rec", "writer",
     "crash", "report", "path_migrate", "untitled", "identity",
@@ -95,13 +95,19 @@ local function main()
     fail("window title: " .. tostring(PTT.notes_prompt.window_title(pctx.notes_prompt)))
     return
   end
-  if PTT.notes_prompt.WINDOW_W < 700 or PTT.notes_prompt.FIELD_H < 150 then
+  if PTT.notes_prompt.WINDOW_W < 800 or PTT.notes_prompt.FIELD_H < 180 then
     fail("window/field size too small")
     return
   end
   local nurl = tostring(pctx.notes_prompt.notes_page_url or "")
   if not nurl:find("/projects/" .. guid .. "/notes", 1, true) then
     fail("notes_page_url missing: " .. nurl)
+    return
+  end
+  local ranged = PTT.notes_prompt.format_clock_range(
+    "2026-10-01T08:25:00.000Z", "2026-10-01T09:55:00.000Z")
+  if ranged ~= "1. Okt. 2026  ·  10:25 – 11:55" then
+    fail("format_clock_range: " .. tostring(ranged))
     return
   end
   pctx.notes_prompt.notes_path = notes_path
