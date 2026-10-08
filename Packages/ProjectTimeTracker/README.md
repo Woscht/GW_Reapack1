@@ -27,8 +27,8 @@ Design: `docs/superpowers/specs/2026-09-28-project-time-tracker-clean-core-desig
 #### Always-on (startup)
 
 1. **Actions → Show action list**
-2. Find `Script: ProjectTimeTracker.lua` (name may vary slightly by REAPER/ReaPack).
-3. Add it to the **startup actions** / start queue so tracking starts with every REAPER launch.
+2. Run **`Project Time Tracker: Always-on aktivieren`** once (writes `Scripts/__startup.lua` and starts the tracker now).
+3. To undo: run **`Project Time Tracker: Always-on deaktivieren`**.
 4. Optionally bind `ProjectTimeTracker_Stop.lua` to a shortcut for emergency stop.
 
 #### Verify install
@@ -46,12 +46,12 @@ If `modules/` is missing, synchronize ReaPack again or reinstall the package.
 Copy `ProjectTimeTracker.lua`, `ProjectTimeTracker_Stop.lua`, and the entire
 `modules/` folder into REAPER Scripts (same relative layout).
 
-For always-on: add `ProjectTimeTracker.lua` to the **startup actions** queue
-(Actions → Show action list → Options / startup).
+For always-on: run **Always-on aktivieren** once (or edit `Scripts/__startup.lua` manually).
 
 ## Usage
 
-- **Start / always-on:** `ProjectTimeTracker.lua` (defer loop)
+- **Start:** `ProjectTimeTracker.lua` (defer loop)
+- **Always-on on/off:** `ProjectTimeTracker_EnableAlwaysOn.lua` / `ProjectTimeTracker_DisableAlwaysOn.lua`
 - **Emergency stop:** `ProjectTimeTracker_Stop.lua` (sets ExtState; no dialog)
 - Totals print to the console on stop; full history remains in JSONL
 

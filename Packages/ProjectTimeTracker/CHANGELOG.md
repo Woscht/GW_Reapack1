@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.3 — 2026-10-08
+
+- Actions **Always-on aktivieren** / **Always-on deaktivieren** manage `Scripts/__startup.lua`
+- Enable also starts the tracker in the current session
+
 ## 2.2.2 — 2026-10-06
 
 - Unsaved / reference occupancy: strip JSONL for this opening, no Projektdoku, shrink-mirror to central

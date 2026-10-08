@@ -1,13 +1,15 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.2.2
+-- @version 2.2.3
 -- @changelog
---   + Discard unsaved/reference occupancy; Projektdoku HTML link
+--   + Always-on enable/disable via Scripts/__startup.lua
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
 --   ProjectTimeTracker_OpenNotes.lua
 --   ProjectTimeTracker_OfficeOptOut.lua
+--   ProjectTimeTracker_EnableAlwaysOn.lua
+--   ProjectTimeTracker_DisableAlwaysOn.lua
 --   [nomain] modules/*.lua
 
 -- ProjectTimeTracker.lua — entry: load modules and start bootstrap
@@ -18,7 +20,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.2.2" }
+PTT = { _script_root = root, VERSION = "2.2.3" }
 
 local mods = {
   "util",
@@ -38,6 +40,7 @@ local mods = {
   "notes_ui",
   "notes_prompt",
   "occupancy",
+  "startup_on",
   "bootstrap",
 }
 
