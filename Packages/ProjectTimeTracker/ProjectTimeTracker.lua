@@ -1,8 +1,8 @@
 -- @description ProjectTimeTracker
 -- @author audiocoder
--- @version 2.2.5
+-- @version 2.2.6
 -- @changelog
---   + Fix Always-on: running ExtState no longer blocks start after REAPER restart
+--   + Keep occupancy + Projektdoku when Save Yes on project close dialog
 -- @provides
 --   [main] .
 --   ProjectTimeTracker_Stop.lua
@@ -20,7 +20,7 @@ local function script_path()
 end
 
 local root = script_path()
-PTT = { _script_root = root, VERSION = "2.2.5" }
+PTT = { _script_root = root, VERSION = "2.2.6" }
 
 local mods = {
   "util",

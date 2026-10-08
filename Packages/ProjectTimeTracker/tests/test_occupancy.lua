@@ -20,6 +20,15 @@ expect(O.should_discard(false, false) == true, "reference never dirty")
 expect(O.should_discard(false, true) == true, "edited never saved / dirty leave")
 expect(O.should_discard(true, true) == true, "saved then dirty DontSave")
 expect(O.should_discard(true, false) == false, "saved and clean leave")
+expect(O.should_discard(false, true, true) == false, "save-on-close Yes keeps")
+expect(O.should_discard(true, true, true) == false, "dirty leave but just saved on close")
+
+expect(
+  O.project_file_path({ dir = "/proj", name = "A.RPP" }):find("A.RPP", 1, true) ~= nil,
+  "rpp path")
+expect(O.detect_saved_on_close({ dir = "/p", name = "x.RPP" }, 1000, { mtime = 990 }) == true, "fresh mtime")
+expect(O.detect_saved_on_close({ dir = "/p", name = "x.RPP" }, 1000, { mtime = 900 }) == false, "stale mtime")
+expect(O.detect_saved_on_close({ dir = "/p", name = "x.RPP" }, 1000, { mtime = nil }) == false, "no mtime")
 
 local tmp = os.tmpname()
 local f = io.open(tmp, "w")

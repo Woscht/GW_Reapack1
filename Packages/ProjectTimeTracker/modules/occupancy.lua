@@ -2,8 +2,15 @@ PTT = PTT or {}
 PTT.occupancy = PTT.occupancy or {}
 local M = PTT.occupancy
 
+M.SAVE_ON_CLOSE_WINDOW_S = 30
+
 --- Keep only when at least one save this occupancy and leave is not dirty.
-function M.should_discard(save_seen, dirty_at_leave)
+--- `saved_on_close`: .RPP mtime is fresh (Save Yes in close dialog) — we never
+--- observe dirty→clean while the project is still open in that case.
+function M.should_discard(save_seen, dirty_at_leave, saved_on_close)
+  if saved_on_close then
+    return false
+  end
   if dirty_at_leave then
     return true
   end
@@ -11,6 +18,55 @@ function M.should_discard(save_seen, dirty_at_leave)
     return true
   end
   return false
+end
+
+function M.project_file_path(ident)
+  ident = ident or {}
+  local dir = tostring(ident.dir or ""):gsub("[/\\]+$", "")
+  local name = tostring(ident.name or "")
+  if dir == "" or name == "" then
+    return nil
+  end
+  local sep = package.config:sub(1, 1)
+  return dir .. sep .. name
+end
+
+--- Unix mtime of path, or nil. `popen` injectable for tests.
+function M.file_mtime(path, popen)
+  popen = popen or io.popen
+  if not path or path == "" then
+    return nil
+  end
+  local q = tostring(path):gsub('"', '\\"')
+  -- macOS: stat -f %m ; Linux: stat -c %Y
+  local h = popen('stat -f %m "' .. q .. '" 2>/dev/null || stat -c %Y "' .. q .. '" 2>/dev/null')
+  if not h then
+    return nil
+  end
+  local line = h:read("*l")
+  h:close()
+  local n = tonumber(line)
+  return n
+end
+
+--- True when project file was written within the last window_s seconds (Save-on-close).
+function M.detect_saved_on_close(ident, now_unix, opts)
+  opts = opts or {}
+  local window = opts.window_s or M.SAVE_ON_CLOSE_WINDOW_S
+  local path = opts.path or M.project_file_path(ident)
+  if not path then
+    return false
+  end
+  local mtime = opts.mtime
+  if mtime == nil then
+    mtime = M.file_mtime(path, opts.popen)
+  end
+  if not mtime then
+    return false
+  end
+  now_unix = now_unix or os.time()
+  local age = now_unix - mtime
+  return age >= 0 and age <= window
 end
 
 local function line_ts(line)

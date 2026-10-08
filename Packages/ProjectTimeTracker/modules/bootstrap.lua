@@ -239,10 +239,17 @@ function M.finish_leave(ctx, reason)
   local dirty_at_leave = ctx.was_dirty == true
   close_open_sessions(ctx, reason)
   local save_seen = ctx.occupancy_save_seen == true
+  -- Save Yes in REAPER's close dialog: project is written then closed; we still
+  -- see was_dirty from the previous tick and never observe dirty→clean open.
+  local saved_on_close = false
+  if dirty_at_leave and PTT.occupancy and PTT.occupancy.detect_saved_on_close then
+    local now = (ctx.now and ctx.now()) or os.time()
+    saved_on_close = PTT.occupancy.detect_saved_on_close(ctx.ident, now)
+  end
   local discard = true
   if PTT.occupancy and PTT.occupancy.should_discard then
-    discard = PTT.occupancy.should_discard(save_seen, dirty_at_leave)
-  elseif save_seen and not dirty_at_leave then
+    discard = PTT.occupancy.should_discard(save_seen, dirty_at_leave, saved_on_close)
+  elseif saved_on_close or (save_seen and not dirty_at_leave) then
     discard = false
   end
   if discard then

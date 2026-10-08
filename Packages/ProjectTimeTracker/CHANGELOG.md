@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.6 — 2026-10-08
+
+- Save Yes in REAPER close dialog: detect fresh .RPP mtime so occupancy is kept and Projektdoku opens
+
 ## 2.2.5 — 2026-10-08
 
 - Fix Always-on / `__startup.lua`: persisted `running` ExtState no longer stops the tracker on the next REAPER launch
